@@ -1,0 +1,11 @@
+{
+  "users": [
+    {
+      "id": 1,
+      "email": "dev.jeonggu@gmail.com",
+      "password": "Qwer!123",
+      "nickname": "오리너구리들",
+      "profile_url": "../images/profile/1730987731502.png"
+    }
+  ]
+}

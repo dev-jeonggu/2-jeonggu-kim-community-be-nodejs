@@ -1,0 +1,50 @@
+{
+  "boards": [
+    {
+      "id": 1,
+      "title": "다시 테스트 해봅니다.",
+      "content": "테스트 게시글입니다.",
+      "date": "2024-11-07 22:56:48",
+      "email": "dev.jeonggu@gmail.com",
+      "userNo": 1,
+      "imageFile": "../images/board/1730987802390.png",
+      "imageFileName": "image (18).png",
+      "viewCnt": 6
+    },
+    {
+      "id": 2,
+      "title": "다시 테스트 해봅니다. (2)",
+      "content": "테스트입니다. :)",
+      "date": "2024-11-07 22:57:06",
+      "email": "dev.jeonggu@gmail.com",
+      "userNo": 1,
+      "imageFile": null,
+      "imageFileName": null,
+      "viewCnt": 20,
+      "likes": [
+        "dev.jeonggu@gmail.com"
+      ],
+      "likeCnt": 1
+    },
+    {
+      "id": 3,
+      "title": "react 테스트입니다.",
+      "content": "테스트입니다...",
+      "date": "2024-11-14 20:40:39",
+      "email": "dev.jeonggu@gmail.com",
+      "userNo": 1,
+      "imageFile": null,
+      "imageFileName": null
+    },
+    {
+      "id": 4,
+      "title": "react 테스트입니다.",
+      "content": "테스트입니다.",
+      "date": "2024-11-14 21:54:31",
+      "email": "dev.jeonggu@gmail.com",
+      "userNo": 1,
+      "imageFile": null,
+      "imageFileName": null
+    }
+  ]
+}

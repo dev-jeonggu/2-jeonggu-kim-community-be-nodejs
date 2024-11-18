@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>로그인 - AvoWorld</title>
+</head>
+<body>
+    <div class="login-container">
+        <h2>로그인</h2>
+        <form method="POST">
+            <label for="email">이메일:</label>
+            <input type="email" id="txt_email" name="email" required>
+            <label for="password">비밀번호:</label>
+            <input type="password" id="txt_pwd" name="password" required>
+            <p class="helper-text" id="p_helper_text"></p>
+            <button id="btn_login" type="submit">로그인</button>
+        </form>
+    </div>
+    <script src="./js/login.js"></script>
+</body>
+</html>
