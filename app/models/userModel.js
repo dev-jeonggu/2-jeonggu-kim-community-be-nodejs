@@ -53,7 +53,7 @@ exports.getUser = async(key, value) =>{
           // NOTE: 데이터가 존재할 경우 검증 실패 메시지 반환
           return {
             success: false,
-            message: "검증에 실패하였습니다.",
+            // message: "검증에 실패하였습니다.",
             id: rows[0].id,
             nickname: rows[0].nickname,
             email: rows[0].email,
@@ -62,8 +62,8 @@ exports.getUser = async(key, value) =>{
         } else {
           // NOTE: 데이터가 없을 경우 검증 성공 메시지 반환
           return {
-            success: true,
-            message: "검증에 성공하였습니다."
+            success: true
+            // ,message: "검증에 성공하였습니다."
           };
         }
       } catch (err) {
@@ -126,17 +126,17 @@ exports.addUser = async (email, password, nickname, profile_url) => {
     }
 };
 /*
-exports.updateUser = async (userId, updateData) => {
+exports.updateUser = async (user_id, updateData) => {
     const jsonData =  await getJsonData(userFilePath, "users");
 
-    const userIndex = jsonData.users.findIndex(user => user.id === userId);
+    const userIndex = jsonData.users.findIndex(user => user.id === user_id);
     if (userIndex === -1) throw new Error('User not found');
     jsonData.users[userIndex] = { ...jsonData.users[userIndex], ...updateData };
     await fs.writeFile(userFilePath, JSON.stringify(jsonData, null, 2));
     return jsonData.users[userIndex];
 }
 */
-exports.updateUser = async (userId, updateData) => {
+exports.updateUser = async (user_id, updateData) => {
   try {
       // NOTE: 업데이트 데이터에서 필드 추출
       const { email, password, nickname, profile_url } = updateData;
@@ -149,7 +149,7 @@ exports.updateUser = async (userId, updateData) => {
                nickname = COALESCE(?, nickname),
                profile_url = COALESCE(?, profile_url)
            WHERE id = ?`,
-          [email, password, nickname, profile_url, userId]
+          [email, password, nickname, profile_url, user_id]
       );
 
       // NOTE: 업데이트 결과 확인
@@ -164,17 +164,40 @@ exports.updateUser = async (userId, updateData) => {
   }
 };
 // NOTE : 사용자 정보 삭제 및 관련 정보 삭제
-exports.deleteUser = async (userNo, email) => {
+/*
+exports.deleteUser = async (user_id, email) => {
+  
     const jsonUserData = await getJsonData(userFilePath, 'users');
-    jsonUserData.users = jsonUserData.users.filter(user => user.id !== userNo); 
+    jsonUserData.users = jsonUserData.users.filter(user => user.id !== user_id); 
     await saveJsonData(userFilePath, jsonUserData);
     
     const jsonBoardData = await getJsonData(boardFilePath, 'boards');
-    jsonBoardData.boards = jsonBoardData.boards.filter(board => board.userNo !== userNo);
+    jsonBoardData.boards = jsonBoardData.boards.filter(board => board.user_id !== user_id);
     await saveJsonData(boardFilePath, jsonBoardData);
 
     const jsonCommentData = await getJsonData(commentFilePath, 'comments');
-    jsonCommentData.comments = jsonCommentData.comments.filter(comment => comment.userNo !== userNo); 
+    jsonCommentData.comments = jsonCommentData.comments.filter(comment => comment.user_id !== user_id); 
     await saveJsonData(commentFilePath, jsonCommentData);
     return true;
+};*/
+exports.deleteUser = async (user_id, email) => {
+  try {
+        // NOTE : MySQL INSERT 쿼리 실행
+        const [user_result] = await pool.promise().query(
+          `DELETE FROM innodb.users WHERE id = ?`,
+          [user_id]);
+        const [board_result] = await pool.promise().query(
+          `DELETE FROM innodb.boards WHERE reg_id = ?`,
+          [user_id]);
+        const [comment_result] = await pool.promise().query(
+          `DELETE FROM innodb.comments WHERE reg_id = ?`,
+          [user_id]);
+
+  } catch (error) {
+      console.error('Error deleting user:', error);
+      return false;
+
+  }
+  
+  return true;
 };

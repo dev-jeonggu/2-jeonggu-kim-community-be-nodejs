@@ -3,6 +3,7 @@ const router = express.Router();
 const userController = require('../controllers/userController');
 const multer = require('multer');
 const path = require('path');
+const authenticateToken = require("../middleware/authenticateToken");
 
 // NOTE : multer 설정
 const storage = multer.diskStorage({
@@ -16,11 +17,12 @@ const storage = multer.diskStorage({
 
 const upload = multer({ storage: storage });
 
-router.patch('/', userController.updateUser);
+router.patch('/', authenticateToken, userController.updateUser);
 router.post('/', userController.addUser);
-router.get('/check', userController.check);
-router.get('/', userController.getUserInfo);
-router.delete('/', userController.deleteUser);
+router.get('/check',  userController.check);
+router.get('/', authenticateToken, userController.getUserInfo);
+router.delete('/', authenticateToken, userController.deleteUser);
 router.post('/image', upload.single('profileImage'), userController.uploadImage);
+router.get('/image/:filename', userController.loadImage);
 
 module.exports = router;

@@ -9,12 +9,12 @@ const commentFilePath = path.join(__dirname, '../data/commentData.json');
 
 // NOTE : 특정 게시글에 대한 정보
 /*
-exports.getBoardById = async (boardNo, email) => {
+exports.getBoardById = async (board_id, email) => {
     const jsonBoardData = await getJsonData(boardFilePath, "boards"); 
-    const board = jsonBoardData.boards.find(board => board.id === boardNo);
+    const board = jsonBoardData.boards.find(board => board.id === board_id);
 
     let jsonUserData =  await getJsonData(userFilePath, "users"); 
-    jsonUserData.users = jsonUserData.users.filter(user => user.id == board.userNo); 
+    jsonUserData.users = jsonUserData.users.filter(user => user.id == board.user_id); 
 
     if (board) {
         // NOTE : 좋아요 배열에 사용자의 이메일이 있는지 확인하고, isLike 값 설정
@@ -30,16 +30,17 @@ exports.getBoardById = async (boardNo, email) => {
 
     return null;
 };*/
-exports.getBoardById = async (boardNo, email) => {
+exports.getBoardById = async (board_id, email, user_id) => {
     try {
         const [boards] = await pool.promise().query(
             `SELECT
-                b.id as board_id
+                b.id AS board_id
             ,	b.title
             ,	b.content
-            ,	b.reg_dt as date
-            ,	b.reg_id as user_id
+            ,	b.reg_dt AS date
+            ,	b.reg_id AS user_id
             ,	b.image_url
+            ,   u.email
             ,	u.nickname
             ,	u.profile_url
             ,	( SELECT COUNT(*) FROM innodb.likes WHERE board_id = b.id )as likeCnt
@@ -48,14 +49,13 @@ exports.getBoardById = async (boardNo, email) => {
             ,	CASE WHEN EXISTS (
                     SELECT * 
                     FROM innodb.boards
-                    WHERE email = ?
-                    AND board_id = ?
+                    WHERE reg_id = ?
                 ) THEN TRUE 
-                ELSE FALSE END as isAuthor
+                ELSE FALSE END AS isAuthor
             FROM innodb.boards b
             INNER JOIN innodb.users u ON b.reg_id = u.id
             WHERE b.id = ?`,
-            [email, boardNo, boardNo]
+            [user_id, board_id]
         );
 
         if (boards.length > 0) {
@@ -70,7 +70,7 @@ exports.getBoardById = async (boardNo, email) => {
 
 // NOTE : 게시글 추가하기
 /*
-exports.addBorad = async ({ title, content, email, imageFile, imageFileName, userNo}) => {
+exports.addBorad = async ({ title, content, email, image_nm, image_url, user_id}) => {
     const jsonBoardData = await getJsonData(boardFilePath, "boards"); 
     const reg_dt = formatDate(new Date());
     const maxId = jsonBoardData.boards.reduce((max, board) => Math.max(max, board.id), 0);
@@ -81,21 +81,21 @@ exports.addBorad = async ({ title, content, email, imageFile, imageFileName, use
         content,
         date: reg_dt,
         email: email,
-        userNo: userNo,
-        imageFile: imageFile || null, // NOTE : imageFile이 없으면 null로 설정
-        imageFileName: imageFileName || null
+        user_id: user_id,
+        image_nm: image_nm || null, // NOTE : image_nm이 없으면 null로 설정
+        image_url: image_url || null
     };
     jsonBoardData.boards.push(newPost);
     await saveJsonData(boardFilePath, jsonBoardData);
     return newPost;
 };
 */
-exports.addBoard = async ({ title, content, email, imageFile, imageFileName, userNo }) => {
+exports.addBoard = async ({ title, content, email, image_nm, image_url, user_id }) => {
     try {
         const [result] = await pool.promise().query(
-            `INSERT INTO innodb.boards (title, content, email, userNo, imageFile, imageFileName, date)
-             VALUES (?, ?, ?, ?, ?, ?, NOW())`,
-            [title, content, email, userNo, imageFile || null, imageFileName || null]
+            `INSERT INTO innodb.boards (title, content, reg_id, image_url, image_nm, reg_dt)
+             VALUES (?, ?, ?, ?, ?, NOW())`,
+            [title, content, user_id, image_nm || null, image_url || null]
         );
 
         return {
@@ -103,9 +103,9 @@ exports.addBoard = async ({ title, content, email, imageFile, imageFileName, use
             title,
             content,
             email,
-            userNo,
-            imageFile,
-            imageFileName,
+            user_id,
+            image_nm,
+            image_url,
             date: new Date()
         };
     } catch (error) {
@@ -125,11 +125,11 @@ exports.getBoardList = async (startPage = 1, endPage = 10) => {
     const endIndex = endPage * 10;
     const selectedPosts = jsonBoardData.boards.slice(startIndex, endIndex).map(board => {
 
-        const user = jsonUserData.users.find(user => user.id === board.userNo);
-        const comments = jsonCommentData.comments.filter(comment => comment.boardNo === board.id);
+        const user = jsonUserData.users.find(user => user.id === board.user_id);
+        const comments = jsonCommentData.comments.filter(comment => comment.board_id === board.id);
 
         return {
-            boardNo: board.id,
+            board_id: board.id,
             title: board.title,
             likeCnt: board.likeCnt || 0,
             commentCnt: comments.length,
@@ -143,24 +143,25 @@ exports.getBoardList = async (startPage = 1, endPage = 10) => {
 
     return selectedPosts;
 };*/
-exports.getBoardList = async (startPage = 1, endPage = 10) => {
+exports.getBoardList = async (user_id, startPage = 1, endPage = 10) => {
     const offset = (startPage - 1) * 10;
     const limit = endPage * 10;
 
     try {
         const [boards] = await pool.promise().query(
             `SELECT 
-                b.id as board_id
+                b.id AS board_id
             ,	b.title
-            ,	b.reg_dt as date
-            ,	b.reg_id as user_id
+            ,	b.reg_dt AS date
+            ,	b.reg_id AS user_id
             ,	u.nickname
             ,	u.profile_url
-            ,	( SELECT COUNT(*) FROM innodb.likes WHERE board_id = b.id )as likeCnt
-            ,	( SELECT COUNT(*) FROM innodb.comments WHERE board_id = b.id )as commentCnt
-            ,	( SELECT COUNT(*) FROM innodb.boardview WHERE board_id = b.id )as viewCnt
+            ,	( SELECT COUNT(*) FROM innodb.likes WHERE board_id = b.id ) AS likeCnt
+            ,	( SELECT COUNT(*) FROM innodb.comments WHERE board_id = b.id ) AS commentCnt
+            ,	( SELECT COUNT(*) FROM innodb.boardview WHERE board_id = b.id ) AS viewCnt
             FROM innodb.boards b
             INNER JOIN innodb.users u on b.reg_id = u.id`,
+            [user_id]
             // [offset, limit]
         );
 
@@ -173,9 +174,9 @@ exports.getBoardList = async (startPage = 1, endPage = 10) => {
 
 // NOTE : 게시글 업데이트
 /*
-exports.editBoard = async (boardNo, updatedData) => {
+exports.editBoard = async (board_id, updatedData) => {
     const jsonBoardData = await getJsonData(boardFilePath, "boards"); 
-    const boardIndex = jsonBoardData.boards.findIndex(board => board.id === boardNo);
+    const boardIndex = jsonBoardData.boards.findIndex(board => board.id === board_id);
 
     if (boardIndex === -1) {
         throw new Error('board not found');
@@ -190,41 +191,58 @@ exports.editBoard = async (boardNo, updatedData) => {
     jsonBoardData.boards[boardIndex] = { 
         ...board
         , ...updatedData
-        , imageFile: updatedData.imageFile || board.imageFile
-        , imageFileName: updatedData.imageFileName || board.imageFileName
+        , image_nm: updatedData.image_nm || board.image_nm
+        , image_url: updatedData.image_url || board.image_url
      };
     await saveJsonData(boardFilePath, jsonBoardData);
     return jsonBoardData.boards[boardIndex];
 };*/
-exports.editBoard = async (boardNo, updatedData) => {
+exports.editBoard = async (boardId, updatedData) => {
     try {
-        const { title, content, imageFile, imageFileName } = updatedData;
+        const fields = ["title", "content", "image_url", "image_nm"];
+        const updates = [];
+        const params = [];
+        fields.forEach(field => {
+            if (updatedData[field] && updatedData[field] !== "") {
+                updates.push(`${field} = ?`);
+                params.push(updatedData[field]);
+            }
+        });
+        if (updates.length === 0) {
+            throw new Error("No fields to update");
+        }
 
-        const [result] = await pool.promise().query(
-            `UPDATE innodb.boards
-             SET title = COALESCE(?, title),
-                 content = COALESCE(?, content),
-                 imageFile = COALESCE(?, imageFile),
-                 imageFileName = COALESCE(?, imageFileName)
-             WHERE id = ?`,
-            [title, content, imageFile, imageFileName, boardNo]
-        );
+        // NOTE : WHERE 조건 추가
+        params.push(boardId);
 
-        return result.affectedRows > 0;
+        const query = `
+            UPDATE innodb.boards
+            SET ${updates.join(", ")}
+            WHERE id = ?;
+        `;
+        const [result] = await pool.promise().query(query, params);
+
+        if (result.affectedRows === 0) {
+            throw new Error("No rows updated");
+        }
+
+        return result;
+
     } catch (error) {
         console.error('Error editing board:', error);
         throw new Error('Failed to edit board');
     }
 };
 
+
 // NOTE : 게시글 삭제
 /*
-exports.deleteBoard = async (boardNo) => {
+exports.deleteBoard = async (board_id) => {
     const jsonBoardData = await getJsonData(boardFilePath, "boards"); 
     const jsonCommentData = await getJsonData(commentFilePath, "comments");
 
     // NOTE : 삭제할 게시글을 찾기
-    const boardIndex = jsonBoardData.boards.findIndex(board => board.id === boardNo);
+    const boardIndex = jsonBoardData.boards.findIndex(board => board.id === board_id);
     
     if (boardIndex !== -1) {
         // NOTE : 게시글 삭제
@@ -232,7 +250,7 @@ exports.deleteBoard = async (boardNo) => {
         await saveJsonData(boardFilePath, jsonBoardData);
 
         // NOTE : 해당 게시글과 관련된 댓글 삭제
-        jsonCommentData.comments = jsonCommentData.comments.filter(comment => comment.boardNo !== boardNo);
+        jsonCommentData.comments = jsonCommentData.comments.filter(comment => comment.board_id !== board_id);
         await saveJsonData(commentFilePath, jsonCommentData);
         
         return true;
@@ -240,18 +258,18 @@ exports.deleteBoard = async (boardNo) => {
     return false; // 해당 게시글이 없을 경우
 };
 */
-exports.deleteBoard = async (boardNo) => {
+exports.deleteBoard = async (board_id) => {
     try {
         const [result] = await pool.promise().query(
             `DELETE FROM boards WHERE id = ?`,
-            [boardNo]
+            [board_id]
         );
 
         if (result.affectedRows > 0) {
-            // 게시글과 관련된 댓글 삭제
+            // NOTE : 게시글과 관련된 댓글 삭제
             await pool.promise().query(
-                `DELETE FROM innodb.comments WHERE boardNo = ?`,
-                [boardNo]
+                `DELETE FROM innodb.comments WHERE board_id = ?`,
+                [board_id]
             );
             return true;
         }
@@ -263,10 +281,10 @@ exports.deleteBoard = async (boardNo) => {
 };
 // NOTE : 조회수 증가하기
 /*
-exports.addViewCount = async (boardNo) => {
+exports.addViewCount = async (board_id) => {
     const jsonBoardData = await getJsonData(boardFilePath, "boards"); 
 
-    const boardIndex = jsonBoardData.boards.findIndex(board => board.id === boardNo);
+    const boardIndex = jsonBoardData.boards.findIndex(board => board.id === board_id);
 
     if (boardIndex !== -1) {
         jsonBoardData.boards[boardIndex].viewCnt = (jsonBoardData.boards[boardIndex].viewCnt || 0) + 1;
@@ -275,11 +293,11 @@ exports.addViewCount = async (boardNo) => {
     }
     return null; // NOTE : 게시글이 없을 경우 null 반환
 };*/
-exports.addViewCount = async (boardNo) => {
+exports.addViewCount = async (board_id, user_id) => {
     try {
         const [result] = await pool.promise().query(
-            `UPDATE innodb.boards SET viewCnt = viewCnt + 1 WHERE id = ?`,
-            [boardNo]
+            "INSERT INTO innodb.boardview (board_id, user_id, reg_dt) VALUES (?, ?, NOW())",
+            [board_id, user_id]
         );
 
         return result.affectedRows > 0;
@@ -291,9 +309,9 @@ exports.addViewCount = async (boardNo) => {
 
 // NOTE : 좋아요 누르기
 /*
-exports.likeBoard = async (boardNo, email) => {
+exports.likeBoard = async (board_id, email) => {
     const jsonBoardData = await getJsonData(boardFilePath, "boards"); 
-    const boardIndex = jsonBoardData.boards.findIndex(board => board.id === boardNo);
+    const boardIndex = jsonBoardData.boards.findIndex(board => board.id === board_id);
 
     if (boardIndex !== -1) {
         const board = jsonBoardData.boards[boardIndex];
@@ -316,10 +334,10 @@ exports.likeBoard = async (boardNo, email) => {
     return null; // NOTE : 게시글이 없을 경우 null 반환
 };
 */
-exports.likeBoard = async (boardNo, userId) => {
+exports.likeBoard = async (board_id, user_id) => {
     try {
-        // 게시글 존재 여부 확인
-        const [rows] = await pool.promise().query("SELECT * FROM innodb.boards WHERE id = ?", [boardNo]);
+        // NOTE : 게시글 존재 여부 확인
+        const [rows] = await pool.promise().query("SELECT * FROM innodb.boards WHERE id = ?", [board_id]);
         if (rows.length === 0) {
             return null; // NOTE : 게시글이 없으면 null 반환
         }
@@ -327,21 +345,21 @@ exports.likeBoard = async (boardNo, userId) => {
         // NOTE : 사용자가 이미 좋아요를 눌렀는지 확인
         const [existingLike] = await pool.promise().query(
             "SELECT id FROM innodb.likes WHERE board_id = ? AND user_id = ?",
-            [boardNo, userId]
+            [board_id, user_id]
         );
 
         if (existingLike.length > 0) {
             // NOTE : 이미 좋아요를 눌렀다면 좋아요 취소
-            await pool.promise().query("DELETE FROM innodb.likes WHERE board_id = ? AND user_id = ?", [boardNo, userId]);
-            const [updatedBoard] = await pool.promise().query("SELECT count(*) as likeCnt FROM innodb.likes WHERE board_id = ?", [boardNo]);
+            await pool.promise().query("DELETE FROM innodb.likes WHERE board_id = ? AND user_id = ?", [board_id, user_id]);
+            const [updatedBoard] = await pool.promise().query("SELECT count(*) AS likeCnt FROM innodb.likes WHERE board_id = ?", [board_id]);
             return { likeCnt: updatedBoard[0].likeCnt, liked: false };
         } else {
             // NOTE : 좋아요 추가
             await pool.promise().query(
                 "INSERT INTO innodb.likes (board_id, user_id, reg_dt) VALUES (?, ?, NOW())",
-                [boardNo, userId]
+                [board_id, user_id]
             );
-            const [updatedBoard] = await pool.promise().query("SELECT count(*) as likeCnt FROM innodb.likes WHERE board_id = ?", [boardNo]);
+            const [updatedBoard] = await pool.promise().query("SELECT count(*) AS likeCnt FROM innodb.likes WHERE board_id = ?", [board_id]);
             return { likeCnt: updatedBoard[0].likeCnt, liked: true };
         }
     } catch (error) {

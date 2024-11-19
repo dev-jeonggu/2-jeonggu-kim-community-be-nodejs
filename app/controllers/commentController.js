@@ -1,9 +1,10 @@
 const commentModel = require('../models/commentModel');
 
+// NOTE: 댓글 추가
 exports.addComment = async (req, res) => {
     const { board_id, content } = req.body;
     const email = req.user?.email || null;
-    const userId = req.user?.id || null;
+    const user_id = req.user?.id || null;
     const nickname = req.user?.nickname || null;
     const profile_url = req.user?.profile_url || null;
 
@@ -12,7 +13,7 @@ exports.addComment = async (req, res) => {
     }
 
     try {
-        const result = await commentModel.addComment({ board_id, content, email, userId });
+        const result = await commentModel.addComment({ board_id, content, email, user_id });
         result.nickname = nickname
         result.profile_url = profile_url
         res.status(200).json({ message: 'success', data: result });
@@ -22,6 +23,7 @@ exports.addComment = async (req, res) => {
     }
 };
 
+// NOTE: 특정 댓글 가져오기
 exports.getCommentsByBoardId = async (req, res) => {
     const board_id = req.params.board_id;
     const user_id = req.user?.id || null;
@@ -40,8 +42,9 @@ exports.getCommentsByBoardId = async (req, res) => {
     }
 };
 
+// NOTE: 댓글 수정
 exports.editComment = async (req, res) => {
-    const commentNo = parseInt(req.params.commentNo, 10);
+    const comment_id = parseInt(req.params.comment_id, 10);
     const { content } = req.body;
 
     if (!content) {
@@ -49,7 +52,7 @@ exports.editComment = async (req, res) => {
     }
 
     try {
-        const success = await commentModel.updateComment(commentNo, content);
+        const success = await commentModel.updateComment(comment_id, content);
         if (success) {
             res.status(200).json({ message: 'success' });
         } else {
@@ -60,13 +63,15 @@ exports.editComment = async (req, res) => {
         res.status(500).json({ message: 'server error' });
     }
 };
+
+// NOTE: 댓글 삭제
 exports.deleteComment = async (req, res) => {
-    const commentNo = req.params.commentNo;
-    if (!commentNo) {
-        return res.status(400).json({ message: 'commentNo is required' });
+    const comment_id = req.params.comment_id;
+    if (!comment_id) {
+        return res.status(400).json({ message: 'comment_id is required' });
     }
     try {
-        const success = await commentModel.deleteComment(parseInt(commentNo));
+        const success = await commentModel.deleteComment(parseInt(comment_id));
         if (success) {
             res.status(200).json({ message: 'success' });
         } else {
@@ -78,6 +83,7 @@ exports.deleteComment = async (req, res) => {
     }
 };
 
+// NOTE: 조회수 증가
 exports.addViewCount = async (req, res) => {
     const board_id = req.params.board_id;
     if (!board_id) {

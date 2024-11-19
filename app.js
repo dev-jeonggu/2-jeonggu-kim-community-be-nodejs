@@ -5,8 +5,7 @@ const rateLimit = require('express-rate-limit');
 const dotenv = require('dotenv');
 const helmet = require('helmet');
 const cookieParser = require('cookie-parser');
-const session = require('express-session');
-const mysql = require('mysql2');
+const cors = require('cors');
 const expressRoutes = require('./app/routes/expressRoutes/expressRoutes');
 
 // NOTE : authRoutes와 isAuthenticated 임포트
@@ -19,9 +18,6 @@ dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 4444;
-
-// NOTE : 모든 도메인의 요청을 허용
-// app.use(cors());
 
 // NOTE : 특정 도메인만 허용 (예: 'http://localhost:3000'에서 요청 허용)
 app.options('*', cors());
@@ -36,29 +32,11 @@ app.use(cors({
 // NOTE : 미들웨어 설정
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.json());
-app.use(
-    session({
-        secret: 'your-secret-key', // NOTE : 세션 암호화를 위한 키
-        resave: false, // NOTE : 세션이 수정되지 않은 경우 저장하지 않음
-        saveUninitialized: false,
-        cookie: { 
-            secure: false, 
-            httpOnly: true,
-            sameSite: "none", // 크로스-사이트 요청에서 쿠키 사용 허용
-            maxAge: 24 * 60 * 60 * 1000 
-        } // NOTE : 1일 동안 세션 유지 (밀리초 단위)
-    })
-);
 
 app.use(express.static(path.join(__dirname, 'app', 'views')));
 app.use(helmet()); // NOTE : Helmet을 사용하여 보안 설정
 app.use(cookieParser());
-app.use(session({
-    secret: 'your-secret-key',
-    resave: false,
-    saveUninitialized: true,
-    cookie: { maxAge: 1000 * 60 * 30 } //NOTE : 세션 유효 시간 : 30분
-}));
+
 app.use('/images', express.static(path.join(__dirname, 'images')));
 
 // NOTE : 요청 속도 제한 설정

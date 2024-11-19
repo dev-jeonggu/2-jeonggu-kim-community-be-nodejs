@@ -4,7 +4,7 @@ const fs = require('fs');
 
 // NOTE : 게시글 전체 조회
 exports.getBoardList = async (req, res) => {
-    const userId = req.user?.id || null;
+    const user_id = req.user?.id || null;
     const startPage = parseInt(req.query.startPage, 10) || 1;
     const endPage = parseInt(req.query.endPage, 10) || 10;
 
@@ -13,7 +13,7 @@ exports.getBoardList = async (req, res) => {
     }
 
     try {
-        const boardList = await boardModel.getBoardList(userId, startPage, endPage);
+        const boardList = await boardModel.getBoardList(user_id, startPage, endPage);
         res.status(200).json({ message: "success", data: boardList });
     } catch (error) {
         console.error('Error fetching board list:', error);
@@ -24,7 +24,7 @@ exports.getBoardList = async (req, res) => {
 // NOTE : 게시글 추가
 exports.addBoard = async (req, res) => {
     const email = req.user?.email || null;
-    const userId = req.user?.id || null;
+    const user_id = req.user?.id || null;
     
     const { title, content, image_nm, image_url } = req.body;
 
@@ -33,7 +33,7 @@ exports.addBoard = async (req, res) => {
     }
 
     try {
-        const newPost = await boardModel.addBoard({ title, content, email, image_nm, image_url, userId });
+        const newPost = await boardModel.addBoard({ title, content, email, image_nm, image_url, user_id });
         res.status(201).json({ message: 'success', data: newPost });
     } catch (error) {
         console.error('Error adding board post:', error);
@@ -45,13 +45,13 @@ exports.addBoard = async (req, res) => {
 exports.getBoardInfo = async (req, res) => {
     const board_id = parseInt(req.params.board_id, 10);
     const email = req.user?.email || null;
-    const userId = req.user?.id || null;
+    const user_id = req.user?.id || null;
     if (!board_id) {
         return res.status(400).json({ message: "invalid", data: null });
     }
     
     try {
-        const board = await boardModel.getBoardById(board_id, email, userId);
+        const board = await boardModel.getBoardById(board_id, email, user_id);
         if (board) {
             res.status(200).json({ message: 'success', data: board });
         } else {
@@ -97,14 +97,14 @@ exports.deleteBoard = async (req, res) => {
 // NOTE : 좋아요 기능
 exports.likeBoard = async (req, res) => {
     const { board_id } = req.body;
-    const userId = req.user?.id || null;
+    const user_id = req.user?.id || null;
 
-    if (!board_id || !userId) {
+    if (!board_id || !user_id) {
         return res.status(400).json({ message: 'invalid', data: null });
     }
 
     try {
-        const updatedBoard = await boardModel.likeBoard(board_id, userId);
+        const updatedBoard = await boardModel.likeBoard(board_id, user_id);
         if (updatedBoard) {
             res.status(200).json({ message: 'success', data: updatedBoard });
         } else {
@@ -119,13 +119,13 @@ exports.likeBoard = async (req, res) => {
 // NOTE : 조회수 증가
 exports.addViewCount = async (req, res) => {
     const board_id = parseInt(req.params.board_id);
-    const userId = req.user?.id || null;
+    const user_id = req.user?.id || null;
 
     if (!board_id) {
         return res.status(400).json({ message: 'invalid', data: null });
     }
     try {
-        const updatedPost = await boardModel.addViewCount(board_id, userId);
+        const updatedPost = await boardModel.addViewCount(board_id, user_id);
         if (updatedPost) {
             res.status(200).json({ message: 'success', data: updatedPost });
         } else {
@@ -147,6 +147,7 @@ exports.uploadImage = (req, res) => {
     res.json({ message: '파일 업로드 성공', filePath });
 };
 
+// NOTE : 이미지 업로드
 exports.loadImage = (req, res) => {
     const filename = req.params.filename;
     const filePath = path.join(__dirname, '..', 'images', 'board', filename);
