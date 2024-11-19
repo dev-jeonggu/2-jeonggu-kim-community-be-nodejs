@@ -20,13 +20,13 @@ const upload = multer({ storage: storage });
 router.get('/', boardController.getBoardList);
 router.post('/', authenticateToken, boardController.addBoard);
 
-router.get('/:boardNo', authenticateToken, boardController.getBoardInfo);
-router.put('/:boardNo', authenticateToken, boardController.editBoard);
-router.delete('/:boardNo', authenticateToken, boardController.deleteBoard);
+router.get('/:board_id', authenticateToken, boardController.getBoardInfo);
+router.put('/:board_id', authenticateToken, boardController.editBoard);
+router.delete('/:board_id', authenticateToken, boardController.deleteBoard);
 
 // router.get('/boardInfo', boardController.getBoardInfo);
 router.post('/like', authenticateToken, boardController.likeBoard);
-router.patch('/view/:boardNo', boardController.addViewCount);
+router.patch('/view/:board_id', authenticateToken, boardController.addViewCount);
 router.post('/image', upload.single('boardImage'), boardController.uploadImage);
 
 module.exports = router;
