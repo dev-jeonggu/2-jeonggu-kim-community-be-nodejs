@@ -34,27 +34,27 @@ exports.getBoardById = async (board_id, email, user_id) => {
     try {
         const [boards] = await pool.promise().query(
             `SELECT
-                b.id AS board_id
+                b.board_id AS board_id
             ,	b.title
             ,	b.content
             ,	b.reg_dt AS date
-            ,	b.reg_id AS user_id
+            ,	b.user_id AS user_id
             ,	b.image_url
             ,   u.email
             ,	u.nickname
             ,	u.profile_url
-            ,	( SELECT COUNT(*) FROM innodb.likes WHERE board_id = b.id )as likeCnt
-            ,	( SELECT COUNT(*) FROM innodb.comments WHERE board_id = b.id )as commentCnt
-            ,	( SELECT COUNT(*) FROM innodb.boardview WHERE board_id = b.id )as viewCnt
+            ,	( SELECT COUNT(*) FROM innodb.likes WHERE board_id = b.board_id )as like_cnt
+            ,	( SELECT COUNT(*) FROM innodb.comments WHERE board_id = b.board_id )as comment_cnt
+            ,	( SELECT COUNT(*) FROM innodb.boardview WHERE board_id = b.board_id )as view_cnt
             ,	CASE WHEN EXISTS (
                     SELECT * 
                     FROM innodb.boards
-                    WHERE reg_id = ?
+                    WHERE user_id = ?
                 ) THEN TRUE 
                 ELSE FALSE END AS isAuthor
             FROM innodb.boards b
-            INNER JOIN innodb.users u ON b.reg_id = u.id
-            WHERE b.id = ?`,
+            INNER JOIN innodb.users u ON b.user_id = u.user_id
+            WHERE b.board_id = ?`,
             [user_id, board_id]
         );
 
@@ -93,13 +93,13 @@ exports.addBorad = async ({ title, content, email, image_nm, image_url, user_id}
 exports.addBoard = async ({ title, content, email, image_nm, image_url, user_id }) => {
     try {
         const [result] = await pool.promise().query(
-            `INSERT INTO innodb.boards (title, content, reg_id, image_url, image_nm, reg_dt)
+            `INSERT INTO innodb.boards (title, content, user_id, image_url, image_nm, reg_dt)
              VALUES (?, ?, ?, ?, ?, NOW())`,
             [title, content, user_id, image_nm || null, image_url || null]
         );
 
         return {
-            id: result.insertId,
+            user_id: result.insertId,
             title,
             content,
             email,
@@ -131,9 +131,9 @@ exports.getBoardList = async (startPage = 1, endPage = 10) => {
         return {
             board_id: board.id,
             title: board.title,
-            likeCnt: board.likeCnt || 0,
-            commentCnt: comments.length,
-            viewCnt: board.viewCnt || 0,
+            like_cnt: board.like_cnt || 0,
+            comment_cnt: comments.length,
+            view_cnt: board.view_cnt || 0,
             date: board.date || formatDate(new Date()),
             nickname: user ? user.nickname : 'Unknown', // NOTE : 사용자가 있으면 nickname, 없으면 'Unknown'
             profileUrl: user ? user.profile_url : '',
@@ -150,17 +150,17 @@ exports.getBoardList = async (user_id, startPage = 1, endPage = 10) => {
     try {
         const [boards] = await pool.promise().query(
             `SELECT 
-                b.id AS board_id
+                b.board_id AS board_id
             ,	b.title
             ,	b.reg_dt AS date
-            ,	b.reg_id AS user_id
+            ,	b.user_id AS user_id
             ,	u.nickname
             ,	u.profile_url
-            ,	( SELECT COUNT(*) FROM innodb.likes WHERE board_id = b.id ) AS likeCnt
-            ,	( SELECT COUNT(*) FROM innodb.comments WHERE board_id = b.id ) AS commentCnt
-            ,	( SELECT COUNT(*) FROM innodb.boardview WHERE board_id = b.id ) AS viewCnt
+            ,	( SELECT COUNT(*) FROM innodb.likes WHERE board_id = b.board_id ) AS like_cnt
+            ,	( SELECT COUNT(*) FROM innodb.comments WHERE board_id = b.board_id ) AS comment_cnt
+            ,	( SELECT COUNT(*) FROM innodb.boardview WHERE board_id = b.board_id ) AS view_cnt
             FROM innodb.boards b
-            INNER JOIN innodb.users u on b.reg_id = u.id`,
+            INNER JOIN innodb.users u ON b.user_id = u.user_id`,
             [user_id]
             // [offset, limit]
         );
@@ -218,7 +218,7 @@ exports.editBoard = async (boardId, updatedData) => {
         const query = `
             UPDATE innodb.boards
             SET ${updates.join(", ")}
-            WHERE id = ?;
+            WHERE board_id = ?;
         `;
         const [result] = await pool.promise().query(query, params);
 
@@ -261,7 +261,7 @@ exports.deleteBoard = async (board_id) => {
 exports.deleteBoard = async (board_id) => {
     try {
         const [result] = await pool.promise().query(
-            `DELETE FROM boards WHERE id = ?`,
+            `DELETE FROM boards WHERE board_id = ?`,
             [board_id]
         );
 
@@ -287,7 +287,7 @@ exports.addViewCount = async (board_id) => {
     const boardIndex = jsonBoardData.boards.findIndex(board => board.id === board_id);
 
     if (boardIndex !== -1) {
-        jsonBoardData.boards[boardIndex].viewCnt = (jsonBoardData.boards[boardIndex].viewCnt || 0) + 1;
+        jsonBoardData.boards[boardIndex].view_cnt = (jsonBoardData.boards[boardIndex].view_cnt || 0) + 1;
         await saveJsonData(boardFilePath, jsonBoardData);
         return jsonBoardData.boards[boardIndex];
     }
@@ -321,15 +321,15 @@ exports.likeBoard = async (board_id, email) => {
         
         if (board.likes.includes(email)) {
             board.likes = board.likes.filter(email => email !== email);
-            board.likeCnt = (board.likeCnt || 1) - 1;
+            board.like_cnt = (board.like_cnt || 1) - 1;
         } else {
             // NOTE : 좋아요 추가
             board.likes.push(email);
-            board.likeCnt = (board.likeCnt || 0) + 1;
+            board.like_cnt = (board.like_cnt || 0) + 1;
         }
 
         await saveJsonData(boardFilePath, jsonBoardData);
-        return { likeCnt: board.likeCnt };
+        return { like_cnt: board.like_cnt };
     }
     return null; // NOTE : 게시글이 없을 경우 null 반환
 };
@@ -337,30 +337,30 @@ exports.likeBoard = async (board_id, email) => {
 exports.likeBoard = async (board_id, user_id) => {
     try {
         // NOTE : 게시글 존재 여부 확인
-        const [rows] = await pool.promise().query("SELECT * FROM innodb.boards WHERE id = ?", [board_id]);
+        const [rows] = await pool.promise().query("SELECT * FROM innodb.boards WHERE board_id = ?", [board_id]);
         if (rows.length === 0) {
             return null; // NOTE : 게시글이 없으면 null 반환
         }
 
         // NOTE : 사용자가 이미 좋아요를 눌렀는지 확인
         const [existingLike] = await pool.promise().query(
-            "SELECT id FROM innodb.likes WHERE board_id = ? AND user_id = ?",
+            "SELECT like_id FROM innodb.likes WHERE board_id = ? AND user_id = ?",
             [board_id, user_id]
         );
 
         if (existingLike.length > 0) {
             // NOTE : 이미 좋아요를 눌렀다면 좋아요 취소
             await pool.promise().query("DELETE FROM innodb.likes WHERE board_id = ? AND user_id = ?", [board_id, user_id]);
-            const [updatedBoard] = await pool.promise().query("SELECT count(*) AS likeCnt FROM innodb.likes WHERE board_id = ?", [board_id]);
-            return { likeCnt: updatedBoard[0].likeCnt, liked: false };
+            const [updatedBoard] = await pool.promise().query("SELECT count(*) AS like_cnt FROM innodb.likes WHERE board_id = ?", [board_id]);
+            return { like_cnt: updatedBoard[0].like_cnt, liked: false };
         } else {
             // NOTE : 좋아요 추가
             await pool.promise().query(
                 "INSERT INTO innodb.likes (board_id, user_id, reg_dt) VALUES (?, ?, NOW())",
                 [board_id, user_id]
             );
-            const [updatedBoard] = await pool.promise().query("SELECT count(*) AS likeCnt FROM innodb.likes WHERE board_id = ?", [board_id]);
-            return { likeCnt: updatedBoard[0].likeCnt, liked: true };
+            const [updatedBoard] = await pool.promise().query("SELECT count(*) AS like_cnt FROM innodb.likes WHERE board_id = ?", [board_id]);
+            return { like_cnt: updatedBoard[0].like_cnt, liked: true };
         }
     } catch (error) {
         console.error("Error in likeBoard:", error);

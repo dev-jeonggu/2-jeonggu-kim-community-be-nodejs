@@ -20,10 +20,8 @@ exports.check = async (req, res) => {
 // NOTE : 정보 가져오기
 exports.getUserInfo = async (req, res) => {
     try {
-        // 1. 데이터베이스에서 유저 정보 가져오기
-        const result = await userModel.getUser("id", req.user.id);
+        const result = await userModel.getUser("user_id", req.user?.user_id);
 
-        // 2. 유저 데이터가 없으면 에러 반환
         if (!result) {
             return res.status(404).json({ message: 'User not found', data: null });
         }
@@ -71,7 +69,7 @@ exports.updateUser = async (req, res) => {
         return res.status(400).json({ message: 'Nickname or password is required' });
     }
 
-    const user_id = req.user.id;
+    const user_id = req.user?.user_id;
     if (!user_id) {
         return res.status(401).json({ message: 'Unauthorized: User ID not found in session' });
     }
@@ -99,7 +97,7 @@ exports.updateUser = async (req, res) => {
 
 // NOTE: 회원 삭제
 exports.deleteUser = async (req, res) => {
-    const user_id = req.user.id;
+    const user_id = req.user?.user_id;
     const email = req.user.email; 
     let refreshTokens = []; // NOTE : 리프레시 토큰 저장소
     try {

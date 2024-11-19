@@ -14,7 +14,7 @@ exports.login = async (req, res) => {
         if (result.success) {
             // NOTE : JWT 생성
             const token = jwt.sign({ 
-                    id: result.id
+                    user_id: result.user_id
                 ,   nickname: result.nickname
                 ,   email: result.email 
                 ,   profile_url: result.profile_url
@@ -27,7 +27,7 @@ exports.login = async (req, res) => {
                 message: 'success',
                 data: {
                     success: result.success
-                ,   id: result.id
+                ,   user_id: result.user_id
                 ,   email: result.email
                 ,   nickname: result.nickname
                 ,   profile_url: result.profile_url
