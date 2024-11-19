@@ -28,5 +28,6 @@ router.delete('/:board_id', authenticateToken, boardController.deleteBoard);
 router.post('/like', authenticateToken, boardController.likeBoard);
 router.patch('/view/:board_id', authenticateToken, boardController.addViewCount);
 router.post('/image', upload.single('boardImage'), boardController.uploadImage);
+router.get('/image/:filename', boardController.loadImage);
 
 module.exports = router;

@@ -39,6 +39,7 @@ exports.getUserInfo = async (req, res) => {
     }
 };
 
+// NOTE: 회원 추가
 exports.addUser = async (req, res) => {
     const { email, password, nickname, profile_url } = req.body;
     
@@ -61,6 +62,7 @@ exports.addUser = async (req, res) => {
     }
 };
 
+// NOTE: 회원 수정
 exports.updateUser = async (req, res) => {
     const { nickname, password, profile_url } = req.body;
 
@@ -69,8 +71,8 @@ exports.updateUser = async (req, res) => {
         return res.status(400).json({ message: 'Nickname or password is required' });
     }
 
-    const userId = req.user.id;
-    if (!userId) {
+    const user_id = req.user.id;
+    if (!user_id) {
         return res.status(401).json({ message: 'Unauthorized: User ID not found in session' });
     }
 
@@ -80,7 +82,7 @@ exports.updateUser = async (req, res) => {
         if (profile_url) updateData.profile_url = profile_url; 
         if (password) updateData.password = password; 
 
-        const updatedUser = await userModel.updateUser(userId, updateData);
+        const updatedUser = await userModel.updateUser(user_id, updateData);
 
         if (nickname) req.user.nickname = updatedUser.nickname;
 
@@ -95,6 +97,7 @@ exports.updateUser = async (req, res) => {
     }
 };
 
+// NOTE: 회원 삭제
 exports.deleteUser = async (req, res) => {
     const user_id = req.user.id;
     const email = req.user.email; 
@@ -103,7 +106,6 @@ exports.deleteUser = async (req, res) => {
         const refreshToken = req.body.refreshToken;
         const deleteUser = await userModel.deleteUser(user_id, email);
         if(deleteUser){
-            
             refreshTokens = refreshTokens.filter(token => token !== refreshToken);
         }
         res.status(200).json({ message: '회원이 성공적으로 삭제되었습니다.' });

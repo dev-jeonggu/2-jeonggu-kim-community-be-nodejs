@@ -1,6 +1,7 @@
 const authModel = require('../models/authModel');
 const jwt = require("jsonwebtoken");
 
+// NOTE: 로그인
 exports.login = async (req, res) => {
     const { email, password } = req.body;
     try {

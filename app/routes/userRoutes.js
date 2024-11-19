@@ -23,5 +23,6 @@ router.get('/check',  userController.check);
 router.get('/', authenticateToken, userController.getUserInfo);
 router.delete('/', authenticateToken, userController.deleteUser);
 router.post('/image', upload.single('profileImage'), userController.uploadImage);
+router.get('/image/:filename', userController.loadImage);
 
 module.exports = router;
