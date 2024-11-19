@@ -1,16 +1,20 @@
 const commentModel = require('../models/commentModel');
 
 exports.addComment = async (req, res) => {
-    const { boardNo, content } = req.body;
-    const email = req.session.user.email;
-    const userId = req.session.user.id;
+    const { board_id, content } = req.body;
+    const email = req.user?.email || null;
+    const userId = req.user?.id || null;
+    const nickname = req.user?.nickname || null;
+    const profile_url = req.user?.profile_url || null;
 
-    if (!boardNo || !content) {
+    if (!board_id || !content) {
         return res.status(400).json({ message: 'Content is required' });
     }
 
     try {
-        const result = await commentModel.addComment({ boardNo, content, email, userId });
+        const result = await commentModel.addComment({ board_id, content, email, userId });
+        result.nickname = nickname
+        result.profile_url = profile_url
         res.status(200).json({ message: 'success', data: result });
     } catch (error) {
         console.error('Error adding comment:', error);
@@ -18,20 +22,16 @@ exports.addComment = async (req, res) => {
     }
 };
 
-exports.getCommentsByBoardNo = async (req, res) => {
-    const boardNo = req.params.boardNo;
-    if (!boardNo) {
+exports.getCommentsByBoardId = async (req, res) => {
+    const board_id = req.params.board_id;
+    const user_id = req.user?.id || null;
+
+    if (!board_id) {
         return res.status(400).json({ message: 'Content is required' });
     }
 
     try {
-        const comments = await commentModel.getCommentsByBoardNo(parseInt(boardNo));
-        const userEmail = req.session.user ? req.session.user.email : null;
-
-        // NOTE : 각 댓글에 isAuthor 필드를 추가
-        comments.forEach(comment => {
-            comment.isAuthor = comment.email === userEmail;
-        });
+        const comments = await commentModel.getCommentsByBoardId(parseInt(board_id), user_id);
 
         res.status(200).json({ message: 'success', data: comments });
     } catch (error) {
@@ -42,7 +42,7 @@ exports.getCommentsByBoardNo = async (req, res) => {
 
 exports.editComment = async (req, res) => {
     const commentNo = parseInt(req.params.commentNo, 10);
-    const { content } = req.body; // 수정할 댓글 내용 가져오기
+    const { content } = req.body;
 
     if (!content) {
         return res.status(400).json({ message: 'Content is required' });
@@ -79,12 +79,12 @@ exports.deleteComment = async (req, res) => {
 };
 
 exports.addViewCount = async (req, res) => {
-    const boardNo = req.params.boardNo;
-    if (!boardNo) {
-        return res.status(400).json({ message: 'boardNo is required' });
+    const board_id = req.params.board_id;
+    if (!board_id) {
+        return res.status(400).json({ message: 'board_id is required' });
     }
     try {
-        const updatedPost = await boardModel.addViewCount(parseInt(boardNo));
+        const updatedPost = await boardModel.addViewCount(parseInt(board_id));
         if (updatedPost) {
             res.status(200).json({ message: 'success', data: updatedPost });
         } else {

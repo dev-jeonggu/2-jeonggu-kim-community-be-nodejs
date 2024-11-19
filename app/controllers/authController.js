@@ -12,20 +12,25 @@ exports.login = async (req, res) => {
 
         if (result.success) {
             // NOTE : JWT 생성
-            const token = jwt.sign(
-                { id: result.id, email: result.email }, // NOTE : 페이로드
+            const token = jwt.sign({ 
+                    id: result.id
+                ,   nickname: result.nickname
+                ,   email: result.email 
+                ,   profile_url: result.profile_url
+                }, // NOTE : 페이로드
                 "your_secret_key", // NOTE : 비밀 키
                 { expiresIn: "1h" } // NOTE : 만료 시간
             );
-            console.log(result);
             // NOTE : 클라이언트로 토큰과 사용자 데이터를 반환
             return res.status(200).json({
                 message: 'success',
                 data: {
-                    success: result.success,
-                    id: result.id,
-                    email: result.email,
-                    token: token // NOTE : 토큰 추가
+                    success: result.success
+                ,   id: result.id
+                ,   email: result.email
+                ,   nickname: result.nickname
+                ,   profile_url: result.profile_url
+                ,   token: token // NOTE : 토큰 추가
                 }
             });
         } else {
