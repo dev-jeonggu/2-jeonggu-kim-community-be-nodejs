@@ -43,16 +43,3 @@ exports.login = async (req, res) => {
         return res.status(500).json({ message: 'Server error' });
     }
 };
-
-    // NOTE : 로그인 성공 시 세션에 사용자 정보 저장
-    // req.session.user = {
-    //     id: result.id,
-    //     email: result.email
-    // };
-    // req.session.save((err) => {
-    //     if (err) {
-    //         console.error('세션 저장 오류:', err);
-    //     } else {
-    //         console.log('세션 저장 완료:', req.session);
-    //     }
-    // });

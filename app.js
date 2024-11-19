@@ -9,7 +9,7 @@ const cors = require('cors');
 const expressRoutes = require('./app/routes/expressRoutes/expressRoutes');
 
 // NOTE : authRoutes와 isAuthenticated 임포트
-const { router: authRoutes, isAuthenticated } = require('./app/routes/authRoutes');
+const { router: authRoutes } = require('./app/routes/authRoutes');
 const userRoutes = require('./app/routes/userRoutes');
 const boardRoutes = require('./app/routes/boardRoutes');
 const commentRoutes = require('./app/routes/commentRoutes');
