@@ -45,7 +45,7 @@ exports.getUser = async(key, value) =>{
     try {
         // NOTE: MySQL 쿼리를 실행하여 조건에 맞는 사용자 데이터를 가져옴
         const [rows] = await pool.promise().query(
-          `SELECT id, nickname, email, profile_url FROM innodb.users WHERE ?? = ?`,
+          `SELECT user_id, nickname, email, profile_url FROM innodb.users WHERE ?? = ?`,
           [key, value]
         );
     
@@ -54,7 +54,7 @@ exports.getUser = async(key, value) =>{
           return {
             success: false,
             // message: "검증에 실패하였습니다.",
-            id: rows[0].id,
+            user_id: rows[0].user_id,
             nickname: rows[0].nickname,
             email: rows[0].email,
             profile_url: rows[0].profile_url
@@ -106,7 +106,7 @@ exports.addUser = async (email, password, nickname, profile_url) => {
 
         // NOTE : 추가된 사용자의 ID 반환
         const newUser = {
-            id: result.insertId,
+            user_id: result.insertId,
             email,
             password,
             nickname,
@@ -148,7 +148,7 @@ exports.updateUser = async (user_id, updateData) => {
                password = COALESCE(?, password),
                nickname = COALESCE(?, nickname),
                profile_url = COALESCE(?, profile_url)
-           WHERE id = ?`,
+           WHERE user_id = ?`,
           [email, password, nickname, profile_url, user_id]
       );
 
@@ -184,13 +184,13 @@ exports.deleteUser = async (user_id, email) => {
   try {
         // NOTE : MySQL INSERT 쿼리 실행
         const [user_result] = await pool.promise().query(
-          `DELETE FROM innodb.users WHERE id = ?`,
+          `DELETE FROM innodb.users WHERE user_id = ?`,
           [user_id]);
         const [board_result] = await pool.promise().query(
-          `DELETE FROM innodb.boards WHERE reg_id = ?`,
+          `DELETE FROM innodb.boards WHERE user_id = ?`,
           [user_id]);
         const [comment_result] = await pool.promise().query(
-          `DELETE FROM innodb.comments WHERE reg_id = ?`,
+          `DELETE FROM innodb.comments WHERE user_id = ?`,
           [user_id]);
 
   } catch (error) {

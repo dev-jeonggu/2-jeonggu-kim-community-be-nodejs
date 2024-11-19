@@ -29,7 +29,7 @@ async function login(email, password){
     try {
         // NOTE: MySQL 쿼리를 실행하여 조건에 맞는 사용자 데이터를 가져옴
         const [rows] = await pool.promise().query(
-            `SELECT id, nickname, email, profile_url FROM innodb.users WHERE email = ? AND password = ?`,
+            `SELECT user_id, nickname, email, profile_url FROM innodb.users WHERE email = ? AND password = ?`,
             [email, password]
         );
         
@@ -38,7 +38,7 @@ async function login(email, password){
             return {
                 success: true,
                 message: "로그인에 성공하였습니다.",
-                id: rows[0].id,
+                user_id: rows[0].user_id,
                 email: rows[0].email,
                 nickname: rows[0].nickname,
                 profile_url: rows[0].profile_url

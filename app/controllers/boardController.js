@@ -4,7 +4,7 @@ const fs = require('fs');
 
 // NOTE : 게시글 전체 조회
 exports.getBoardList = async (req, res) => {
-    const user_id = req.user?.id || null;
+    const user_id = req.user?.user_id || null;
     const startPage = parseInt(req.query.startPage, 10) || 1;
     const endPage = parseInt(req.query.endPage, 10) || 10;
 
@@ -24,7 +24,7 @@ exports.getBoardList = async (req, res) => {
 // NOTE : 게시글 추가
 exports.addBoard = async (req, res) => {
     const email = req.user?.email || null;
-    const user_id = req.user?.id || null;
+    const user_id = req.user?.user_id || null;
     
     const { title, content, image_nm, image_url } = req.body;
 
@@ -45,7 +45,7 @@ exports.addBoard = async (req, res) => {
 exports.getBoardInfo = async (req, res) => {
     const board_id = parseInt(req.params.board_id, 10);
     const email = req.user?.email || null;
-    const user_id = req.user?.id || null;
+    const user_id = req.user?.user_id || null;
     if (!board_id) {
         return res.status(400).json({ message: "invalid", data: null });
     }
@@ -97,7 +97,7 @@ exports.deleteBoard = async (req, res) => {
 // NOTE : 좋아요 기능
 exports.likeBoard = async (req, res) => {
     const { board_id } = req.body;
-    const user_id = req.user?.id || null;
+    const user_id = req.user?.user_id || null;
 
     if (!board_id || !user_id) {
         return res.status(400).json({ message: 'invalid', data: null });
@@ -119,7 +119,7 @@ exports.likeBoard = async (req, res) => {
 // NOTE : 조회수 증가
 exports.addViewCount = async (req, res) => {
     const board_id = parseInt(req.params.board_id);
-    const user_id = req.user?.id || null;
+    const user_id = req.user?.user_id || null;
 
     if (!board_id) {
         return res.status(400).json({ message: 'invalid', data: null });

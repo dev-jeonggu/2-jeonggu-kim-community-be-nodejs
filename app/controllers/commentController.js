@@ -4,7 +4,7 @@ const commentModel = require('../models/commentModel');
 exports.addComment = async (req, res) => {
     const { board_id, content } = req.body;
     const email = req.user?.email || null;
-    const user_id = req.user?.id || null;
+    const user_id = req.user?.user_id || null;
     const nickname = req.user?.nickname || null;
     const profile_url = req.user?.profile_url || null;
 
@@ -26,7 +26,7 @@ exports.addComment = async (req, res) => {
 // NOTE: 특정 댓글 가져오기
 exports.getCommentsByBoardId = async (req, res) => {
     const board_id = req.params.board_id;
-    const user_id = req.user?.id || null;
+    const user_id = req.user?.user_id || null;
 
     if (!board_id) {
         return res.status(400).json({ message: 'Content is required' });

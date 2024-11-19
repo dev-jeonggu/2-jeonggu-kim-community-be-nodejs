@@ -9,7 +9,7 @@
       "user_id": 1,
       "image_nm": "../images/board/1730987802390.png",
       "image_url": "image (18).png",
-      "viewCnt": 6
+      "view_cnt": 6
     },
     {
       "id": 2,
@@ -20,11 +20,11 @@
       "user_id": 1,
       "image_nm": null,
       "image_url": null,
-      "viewCnt": 20,
+      "view_cnt": 20,
       "likes": [
         "dev.jeonggu@gmail.com"
       ],
-      "likeCnt": 1
+      "like_cnt": 1
     },
     {
       "id": 3,

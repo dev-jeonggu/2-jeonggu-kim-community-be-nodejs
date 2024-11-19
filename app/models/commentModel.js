@@ -46,14 +46,14 @@ exports.addComment = async ({ board_id, content, email, user_id}) => {
     
     const maxId = jsonCommentData.comments.reduce((max, comment) => Math.max(max, comment.id), 0);
     const newCommentId = maxId + 1;
-    const commentCnt = jsonCommentData.comments.filter(comment => comment.board_id === board_id);
+    const comment_cnt = jsonCommentData.comments.filter(comment => comment.board_id === board_id);
     const newComment = {
         id: newCommentId,
         board_id,
         content,
         email,
         user_id: user_id,
-        commentCnt: commentCnt.length + 1,
+        comment_cnt: comment_cnt.length + 1,
         date: formatDate(new Date()),
     };
 
@@ -71,7 +71,7 @@ exports.addComment = async ({ board_id, content, user_id }) => {
     try {
         const now =  new Date();
         const [result] = await pool.promise().query(
-            `INSERT INTO innodb.comments (board_id, content, reg_id, reg_dt)
+            `INSERT INTO innodb.comments (board_id, content, user_id, reg_dt)
              VALUES (?, ?, ?, ?)`,
             [board_id, content, user_id, now]
         );
@@ -114,20 +114,20 @@ exports.getCommentsByBoardId = async (board_id, user_id) => {
     try {
         const [comments] = await pool.promise().query(
             `SELECT
-                b.id AS board_id
+                b.board_id AS board_id
             ,   u.profile_url
             ,   u.nickname
-            ,   c.id AS comment_id
+            ,   c.comment_id AS comment_id
             ,   c.content
-            ,   c.reg_id
+            ,   c.user_id
             ,   c.reg_dt
-            ,   CASE WHEN c.reg_id = ? THEN TRUE 
+            ,   CASE WHEN c.user_id = ? THEN TRUE 
                     ELSE FALSE 
                 END AS isAuthor
             FROM innodb.boards b
-            INNER JOIN innodb.comments c ON b.id = c.board_id
-            INNER JOIN innodb.users u ON c.reg_id = u.id
-            WHERE b.id = ?`,
+            INNER JOIN innodb.comments c ON b.board_id = c.board_id
+            INNER JOIN innodb.users u ON c.user_id = u.user_id
+            WHERE b.board_id = ?`,
             [user_id, board_id]
         );
         return comments;
@@ -154,7 +154,7 @@ exports.deleteComment = async (comment_id) => {
 exports.deleteComment = async (comment_id) => {
     try {
         const [result] = await pool.promise().query(
-            `DELETE FROM innodb.comments WHERE id = ?`,
+            `DELETE FROM innodb.comments WHERE comment_id = ?`,
             [comment_id]
         );
         return result.affectedRows > 0; // 삭제 성공 여부 반환
@@ -183,7 +183,7 @@ exports.updateComment = async (comment_id, newContent) => {
         const [result] = await pool.promise().query(
             `UPDATE innodb.comments
              SET content = ?, chg_dt = NOW()
-             WHERE id = ?`,
+             WHERE comment_id = ?`,
             [newContent, comment_id]
         );
         return result.affectedRows > 0; // 수정 성공 여부 반환
