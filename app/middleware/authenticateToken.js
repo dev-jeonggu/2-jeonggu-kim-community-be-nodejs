@@ -1,6 +1,6 @@
 const jwt = require("jsonwebtoken");
 
-// JWT 인증 미들웨어
+// NOTE: JWT 인증 미들웨어
 const authenticateToken = (req, res, next) => {
   const authHeader = req.headers["authorization"]; // NOTE : Authorization 헤더에서 토큰 가져오기
   const token = authHeader && authHeader.split(" ")[1]; // NOTE : "Bearer <token>" 형식에서 토큰만 추출
