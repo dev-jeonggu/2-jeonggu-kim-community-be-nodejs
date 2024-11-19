@@ -1,7 +1,10 @@
 const boardModel = require('../models/boardModel');
+const path = require('path');
+const fs = require('fs');
 
 // NOTE : 게시글 전체 조회
 exports.getBoardList = async (req, res) => {
+    const userId = req.user?.id || null;
     const startPage = parseInt(req.query.startPage, 10) || 1;
     const endPage = parseInt(req.query.endPage, 10) || 10;
 
@@ -10,7 +13,7 @@ exports.getBoardList = async (req, res) => {
     }
 
     try {
-        const boardList = await boardModel.getBoardList(startPage, endPage);
+        const boardList = await boardModel.getBoardList(userId, startPage, endPage);
         res.status(200).json({ message: "success", data: boardList });
     } catch (error) {
         console.error('Error fetching board list:', error);
@@ -20,22 +23,17 @@ exports.getBoardList = async (req, res) => {
 
 // NOTE : 게시글 추가
 exports.addBoard = async (req, res) => {
-    console.log(req.session);
-    console.log(req.session.user);
-    if (!req.session || !req.session.user) {
-        return res.status(401).json({ message: '로그인이 필요합니다.' });
-    }
-
-    const { title, content, imageFile, imageFileName } = req.body;
-    const email = req.session.user.email;
-    const userNo = req.session.user.id;
+    const email = req.user?.email || null;
+    const userId = req.user?.id || null;
+    
+    const { title, content, image_nm, image_url } = req.body;
 
     if (!title || !content || !email) {
         return res.status(400).json({ message: '필수 필드가 누락되었습니다.' });
     }
 
     try {
-        const newPost = await boardModel.addBorad({ title, content, email, imageFile, imageFileName, userNo });
+        const newPost = await boardModel.addBoard({ title, content, email, image_nm, image_url, userId });
         res.status(201).json({ message: 'success', data: newPost });
     } catch (error) {
         console.error('Error adding board post:', error);
@@ -45,17 +43,16 @@ exports.addBoard = async (req, res) => {
 
 // NOTE : 특정 게시글 조회
 exports.getBoardInfo = async (req, res) => {
-    const boardNo = parseInt(req.params.boardNo, 10);
+    const board_id = parseInt(req.params.board_id, 10);
     const email = req.user?.email || null;
-
-    if (!boardNo) {
+    const userId = req.user?.id || null;
+    if (!board_id) {
         return res.status(400).json({ message: "invalid", data: null });
     }
-
+    
     try {
-        const board = await boardModel.getBoardById(boardNo, email);
+        const board = await boardModel.getBoardById(board_id, email, userId);
         if (board) {
-            board.isAuthor = req.session?.user?.email === board.email;
             res.status(200).json({ message: 'success', data: board });
         } else {
             res.status(404).json({ message: 'not found', data: null });
@@ -68,11 +65,11 @@ exports.getBoardInfo = async (req, res) => {
 
 // NOTE : 게시글 수정
 exports.editBoard = async (req, res) => {
-    const boardNo = parseInt(req.params.boardNo, 10);
-    const { title, content, imageFile, imageFileName } = req.body;
+    const board_id = parseInt(req.params.board_id, 10);
+    const { title, content, image_url, image_nm } = req.body;
 
     try {
-        const editBoard = await boardModel.editBoard(boardNo, { title, content, imageFile, imageFileName });
+        const editBoard = await boardModel.editBoard(board_id, { title, content, image_url, image_nm });
         res.status(200).json({ message: 'success', data: editBoard });
     } catch (error) {
         console.error('Error updating board post:', error);
@@ -82,10 +79,10 @@ exports.editBoard = async (req, res) => {
 
 // NOTE : 게시글 삭제
 exports.deleteBoard = async (req, res) => {
-    const boardNo = parseInt(req.params.boardNo, 10);
+    const board_id = parseInt(req.params.board_id, 10);
 
     try {
-        const success = await boardModel.deleteBoard(boardNo);
+        const success = await boardModel.deleteBoard(board_id);
         if (success) {
             res.status(200).json({ message: 'success' });
         } else {
@@ -99,15 +96,15 @@ exports.deleteBoard = async (req, res) => {
 
 // NOTE : 좋아요 기능
 exports.likeBoard = async (req, res) => {
-    const { boardNo } = req.body;
+    const { board_id } = req.body;
     const userId = req.user?.id || null;
 
-    if (!boardNo || !userId) {
+    if (!board_id || !userId) {
         return res.status(400).json({ message: 'invalid', data: null });
     }
 
     try {
-        const updatedBoard = await boardModel.likeBoard(boardNo, userId);
+        const updatedBoard = await boardModel.likeBoard(board_id, userId);
         if (updatedBoard) {
             res.status(200).json({ message: 'success', data: updatedBoard });
         } else {
@@ -121,13 +118,14 @@ exports.likeBoard = async (req, res) => {
 
 // NOTE : 조회수 증가
 exports.addViewCount = async (req, res) => {
-    const boardNo = parseInt(req.params.boardNo);
+    const board_id = parseInt(req.params.board_id);
+    const userId = req.user?.id || null;
 
-    if (!boardNo) {
+    if (!board_id) {
         return res.status(400).json({ message: 'invalid', data: null });
     }
     try {
-        const updatedPost = await boardModel.addViewCount(boardNo);
+        const updatedPost = await boardModel.addViewCount(board_id, userId);
         if (updatedPost) {
             res.status(200).json({ message: 'success', data: updatedPost });
         } else {
@@ -147,4 +145,22 @@ exports.uploadImage = (req, res) => {
 
     const filePath = `../images/board/${req.file.filename}`;
     res.json({ message: '파일 업로드 성공', filePath });
+};
+
+exports.loadImage = (req, res) => {
+    const filename = req.params.filename;
+    const filePath = path.join(__dirname, '..', 'images', 'board', filename);
+    
+    fs.access(filePath, fs.constants.F_OK, (err) => {
+        res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin'); 
+        res.setHeader('Access-Control-Allow-Origin', 'http://localhost:5555'); // NOTE : 클라이언트 도메인
+        res.setHeader('Access-Control-Allow-Credentials', 'true');
+
+        res.sendFile(filePath, (err) => {
+            if (err) {
+                console.error('파일 전송 중 오류 발생:', err);
+                res.status(500).json({ message: '파일 전송 중 오류 발생' });
+            }
+        });
+    });
 };

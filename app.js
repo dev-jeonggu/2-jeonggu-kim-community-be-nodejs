@@ -8,27 +8,28 @@ const cookieParser = require('cookie-parser');
 const session = require('express-session');
 const mysql = require('mysql2');
 const expressRoutes = require('./app/routes/expressRoutes/expressRoutes');
-const cors = require('cors');
 
 // NOTE : authRoutes와 isAuthenticated 임포트
 const { router: authRoutes, isAuthenticated } = require('./app/routes/authRoutes');
 const userRoutes = require('./app/routes/userRoutes');
 const boardRoutes = require('./app/routes/boardRoutes');
 const commentRoutes = require('./app/routes/commentRoutes');
+
 dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 4444;
-const fs = require('fs');
 
 // NOTE : 모든 도메인의 요청을 허용
 // app.use(cors());
 
 // NOTE : 특정 도메인만 허용 (예: 'http://localhost:3000'에서 요청 허용)
+app.options('*', cors());
+
 app.use(cors({
     /// 3000: re, 5555 : fe
     origin: ['http://localhost:3000', 'http://localhost:5555'],
-    methods: ['GET', 'POST', 'PUT', 'DELETE'], // NOTE : 허용할 메서드 지정
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'], // NOTE : 허용할 메서드 지정
     credentials: true // NOTE : 세션 쿠키 전송을 허용
 }));
 
@@ -102,10 +103,10 @@ app.use((err, req, res, next) => {
 app.use(express.static(path.join(__dirname, 'resources')));
 app.use('/css', express.static(path.join(__dirname, 'resources/css')));
 
-app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, 'app/views/login.html'));
-});
-// NOTE : 회원 가입
+// app.get('/', (req, res) => {
+//     res.sendFile(path.join(__dirname, 'app/views/login.html'));
+// });
+// // NOTE : 회원 가입
 // app.get('/register', (req, res) => {
 //     res.sendFile(path.join(__dirname, 'app/views/register.html'));
 // });
