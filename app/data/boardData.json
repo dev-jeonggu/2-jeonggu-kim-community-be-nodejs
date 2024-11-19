@@ -6,9 +6,9 @@
       "content": "테스트 게시글입니다.",
       "date": "2024-11-07 22:56:48",
       "email": "dev.jeonggu@gmail.com",
-      "userNo": 1,
-      "imageFile": "../images/board/1730987802390.png",
-      "imageFileName": "image (18).png",
+      "user_id": 1,
+      "image_nm": "../images/board/1730987802390.png",
+      "image_url": "image (18).png",
       "viewCnt": 6
     },
     {
@@ -17,9 +17,9 @@
       "content": "테스트입니다. :)",
       "date": "2024-11-07 22:57:06",
       "email": "dev.jeonggu@gmail.com",
-      "userNo": 1,
-      "imageFile": null,
-      "imageFileName": null,
+      "user_id": 1,
+      "image_nm": null,
+      "image_url": null,
       "viewCnt": 20,
       "likes": [
         "dev.jeonggu@gmail.com"
@@ -32,9 +32,9 @@
       "content": "테스트입니다...",
       "date": "2024-11-14 20:40:39",
       "email": "dev.jeonggu@gmail.com",
-      "userNo": 1,
-      "imageFile": null,
-      "imageFileName": null
+      "user_id": 1,
+      "image_nm": null,
+      "image_url": null
     },
     {
       "id": 4,
@@ -42,9 +42,9 @@
       "content": "테스트입니다.",
       "date": "2024-11-14 21:54:31",
       "email": "dev.jeonggu@gmail.com",
-      "userNo": 1,
-      "imageFile": null,
-      "imageFileName": null
+      "user_id": 1,
+      "image_nm": null,
+      "image_url": null
     }
   ]
 }
