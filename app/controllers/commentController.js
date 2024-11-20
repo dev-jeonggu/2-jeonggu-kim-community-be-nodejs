@@ -16,10 +16,10 @@ exports.addComment = async (req, res) => {
         const result = await commentModel.addComment({ board_id, content, email, user_id });
         result.nickname = nickname
         result.profile_url = profile_url
-        res.status(200).json({ message: 'success', data: result });
+        return res.status(200).json({ message: 'success', data: result });
     } catch (error) {
         console.error('Error adding comment:', error);
-        res.status(500).json({ message: 'server error', data: null });
+        return res.status(500).json({ message: 'server error', data: null });
     }
 };
 
@@ -35,10 +35,10 @@ exports.getCommentsByBoardId = async (req, res) => {
     try {
         const comments = await commentModel.getCommentsByBoardId(parseInt(board_id), user_id);
 
-        res.status(200).json({ message: 'success', data: comments });
+        return res.status(200).json({ message: 'success', data: comments });
     } catch (error) {
         console.error('Error fetching comments:', error);
-        res.status(500).json({ message: 'server error', data: null });
+        return res.status(500).json({ message: 'server error', data: null });
     }
 };
 
@@ -54,13 +54,13 @@ exports.editComment = async (req, res) => {
     try {
         const success = await commentModel.updateComment(comment_id, content);
         if (success) {
-            res.status(200).json({ message: 'success' });
+            return res.status(200).json({ message: 'success' });
         } else {
-            res.status(404).json({ message: 'comment not found' });
+            return res.status(404).json({ message: 'comment not found' });
         }
     } catch (error) {
         console.error('Error updating comment:', error);
-        res.status(500).json({ message: 'server error' });
+        return res.status(500).json({ message: 'server error' });
     }
 };
 
@@ -73,13 +73,13 @@ exports.deleteComment = async (req, res) => {
     try {
         const success = await commentModel.deleteComment(parseInt(comment_id));
         if (success) {
-            res.status(200).json({ message: 'success' });
+            return res.status(200).json({ message: 'success' });
         } else {
-            res.status(404).json({ message: 'comment not found' });
+            return res.status(404).json({ message: 'comment not found' });
         }
     } catch (error) {
         console.error('Error deleting comment:', error);
-        res.status(500).json({ message: 'server error' });
+        return res.status(500).json({ message: 'server error' });
     }
 };
 
@@ -92,12 +92,12 @@ exports.addViewCount = async (req, res) => {
     try {
         const updatedPost = await boardModel.addViewCount(parseInt(board_id));
         if (updatedPost) {
-            res.status(200).json({ message: 'success', data: updatedPost });
+            return res.status(200).json({ message: 'success', data: updatedPost });
         } else {
-            res.status(404).json({ message: 'Board post not found' });
+            return res.status(404).json({ message: 'Board post not found' });
         }
     } catch (error) {
         console.error('Error incrementing view count:', error);
-        res.status(500).json({ message: 'server error' });
+        return res.status(500).json({ message: 'server error' });
     }
 };

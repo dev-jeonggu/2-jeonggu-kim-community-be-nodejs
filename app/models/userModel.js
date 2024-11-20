@@ -13,9 +13,9 @@ const addUser = async (email, password, nickname, profile_url) => {
 };
 */
 const fs = require('fs').promises;
-const commentFilePath = path.join(__dirname, '../data/commentData.json');
-const boardFilePath = path.join(__dirname, '../data/boardData.json');
-const userFilePath = path.join(__dirname, '../data/userData.json');
+// const commentFilePath = path.join(__dirname, '../data/commentData.json');
+// const boardFilePath = path.join(__dirname, '../data/boardData.json');
+// const userFilePath = path.join(__dirname, '../data/userData.json');
 
 /*
 // NOTE : email, nickname에 따라 조회

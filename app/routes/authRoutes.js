@@ -4,7 +4,7 @@ const authController = require('../controllers/authController');
 const authenticateToken = require("../middleware/authenticateToken");
 
 router.get('/', authenticateToken, (req, res) => {
-    res.status(200).json({
+    return res.status(200).json({
         authenticated: true
     });
 });
