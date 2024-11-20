@@ -4,7 +4,6 @@ const fs = require('fs');
 
 // NOTE : 게시글 전체 조회
 exports.getBoardList = async (req, res) => {
-    const user_id = req.user?.user_id || null;
     const startPage = parseInt(req.query.startPage, 10) || 1;
     const endPage = parseInt(req.query.endPage, 10) || 10;
 
@@ -13,11 +12,11 @@ exports.getBoardList = async (req, res) => {
     }
 
     try {
-        const boardList = await boardModel.getBoardList(user_id, startPage, endPage);
-        res.status(200).json({ message: "success", data: boardList });
+        const boardList = await boardModel.getBoardList(startPage, endPage);
+        return res.status(200).json({ message: "success", data: boardList });
     } catch (error) {
         console.error('Error fetching board list:', error);
-        res.status(500).json({ message: "server error", data: null });
+        return res.status(500).json({ message: "server error", data: null });
     }
 };
 
@@ -34,10 +33,10 @@ exports.addBoard = async (req, res) => {
 
     try {
         const newPost = await boardModel.addBoard({ title, content, email, image_nm, image_url, user_id });
-        res.status(201).json({ message: 'success', data: newPost });
+        return res.status(201).json({ message: 'success', data: newPost });
     } catch (error) {
         console.error('Error adding board post:', error);
-        res.status(500).json({ message: '서버 오류가 발생했습니다.', data: null });
+        return res.status(500).json({ message: '서버 오류가 발생했습니다.', data: null });
     }
 };
 
@@ -53,13 +52,13 @@ exports.getBoardInfo = async (req, res) => {
     try {
         const board = await boardModel.getBoardById(board_id, email, user_id);
         if (board) {
-            res.status(200).json({ message: 'success', data: board });
+            return res.status(200).json({ message: 'success', data: board });
         } else {
-            res.status(404).json({ message: 'not found', data: null });
+            return res.status(404).json({ message: 'not found', data: null });
         }
     } catch (error) {
         console.error('Error fetching board info:', error);
-        res.status(500).json({ message: 'server error', data: null });
+        return res.status(500).json({ message: 'server error', data: null });
     }
 };
 
@@ -70,10 +69,10 @@ exports.editBoard = async (req, res) => {
 
     try {
         const editBoard = await boardModel.editBoard(board_id, { title, content, image_url, image_nm });
-        res.status(200).json({ message: 'success', data: editBoard });
+        return res.status(200).json({ message: 'success', data: editBoard });
     } catch (error) {
         console.error('Error updating board post:', error);
-        res.status(500).json({ message: 'server error', data: null });
+        return res.status(500).json({ message: 'server error', data: null });
     }
 };
 
@@ -84,13 +83,13 @@ exports.deleteBoard = async (req, res) => {
     try {
         const success = await boardModel.deleteBoard(board_id);
         if (success) {
-            res.status(200).json({ message: 'success' });
+            return res.status(200).json({ message: 'success' });
         } else {
-            res.status(404).json({ message: 'Board not found' });
+            return res.status(404).json({ message: 'Board not found' });
         }
     } catch (error) {
         console.error('Error deleting board:', error);
-        res.status(500).json({ message: 'server error' });
+        return res.status(500).json({ message: 'server error' });
     }
 };
 
@@ -106,13 +105,13 @@ exports.likeBoard = async (req, res) => {
     try {
         const updatedBoard = await boardModel.likeBoard(board_id, user_id);
         if (updatedBoard) {
-            res.status(200).json({ message: 'success', data: updatedBoard });
+            return res.status(200).json({ message: 'success', data: updatedBoard });
         } else {
-            res.status(404).json({ message: 'Board not found', data: null });
+            return res.status(404).json({ message: 'Board not found', data: null });
         }
     } catch (error) {
         console.error('Error liking board:', error);
-        res.status(500).json({ message: 'server error', data: null });
+        return res.status(500).json({ message: 'server error', data: null });
     }
 };
 
@@ -127,13 +126,13 @@ exports.addViewCount = async (req, res) => {
     try {
         const updatedPost = await boardModel.addViewCount(board_id, user_id);
         if (updatedPost) {
-            res.status(200).json({ message: 'success', data: updatedPost });
+            return res.status(200).json({ message: 'success', data: updatedPost });
         } else {
-            res.status(404).json({ message: 'Board post not found' });
+            return res.status(404).json({ message: 'Board post not found' });
         }
     } catch (error) {
         console.error('Error incrementing view count:', error);
-        res.status(500).json({ message: 'server error' });
+        return res.status(500).json({ message: 'server error' });
     }
 };
 
@@ -160,7 +159,7 @@ exports.loadImage = (req, res) => {
         res.sendFile(filePath, (err) => {
             if (err) {
                 console.error('파일 전송 중 오류 발생:', err);
-                res.status(500).json({ message: '파일 전송 중 오류 발생' });
+                return res.status(500).json({ message: '파일 전송 중 오류 발생' });
             }
         });
     });

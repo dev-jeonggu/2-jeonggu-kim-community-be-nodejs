@@ -161,7 +161,6 @@ exports.getBoardList = async (user_id, startPage = 1, endPage = 10) => {
             ,	( SELECT COUNT(*) FROM innodb.boardview WHERE board_id = b.board_id ) AS view_cnt
             FROM innodb.boards b
             INNER JOIN innodb.users u ON b.user_id = u.user_id`,
-            [user_id]
             // [offset, limit]
         );
 
