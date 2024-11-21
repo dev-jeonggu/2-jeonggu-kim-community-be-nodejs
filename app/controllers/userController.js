@@ -112,13 +112,14 @@ exports.updateUser = async (req, res) => {
 // NOTE: 회원 삭제
 exports.deleteUser = async (req, res) => {
     const user_id = req.user?.user_id;
-    const email = req.user.email; 
     let refreshTokens = []; // NOTE : 리프레시 토큰 저장소
     try {
         const refreshToken = req.body.refreshToken;
-        const deleteUser = await userModel.deleteUser(user_id, email);
+        const deleteUser = await userModel.deleteUser(user_id);
         if(deleteUser){
             refreshTokens = refreshTokens.filter(token => token !== refreshToken);
+        }else{
+            return res.status(500).json({ message: '회원 삭제 중 오류가 발생했습니다.' });
         }
         return res.status(200).json({ message: '회원이 성공적으로 삭제되었습니다.' });
     } catch (error) {

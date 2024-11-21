@@ -164,6 +164,7 @@ exports.updateUser = async (user_id, updateData) => {
   }
 };
 // NOTE : 사용자 정보 삭제 및 관련 정보 삭제
+// NOTE : 더미 데이터 사용
 /*
 exports.deleteUser = async (user_id, email) => {
   
@@ -180,7 +181,9 @@ exports.deleteUser = async (user_id, email) => {
     await saveJsonData(commentFilePath, jsonCommentData);
     return true;
 };*/
-exports.deleteUser = async (user_id, email) => {
+// NOTE : 트랜잭션 적용 전
+/*
+exports.deleteUser = async (user_id) => {
   try {
         // NOTE : MySQL INSERT 쿼리 실행
         const [user_result] = await pool.promise().query(
@@ -200,4 +203,47 @@ exports.deleteUser = async (user_id, email) => {
   }
   
   return true;
+};
+*/
+// NOTE : 트랜잭션 적용 후
+exports.deleteUser = async (user_id) => {
+  const connection = await pool.promise().getConnection();
+  try {
+        // NOTE : (추가) : 트랜잭션 적용하기
+        await connection.beginTransaction();
+        const [user_result] = await pool.promise().query(
+          `DELETE FROM innodb.users WHERE user_id = ?`,
+          [user_id]
+        );
+        // console.log('Query executed successfully:', user_result);
+
+        // NOTE : 게시글 삭제
+        const [board_result] = await connection.query(
+          `DELETE FROM innodb.boards WHERE user_id = ?`,
+          [user_id]
+        );
+        // console.log('Query executed successfully:', board_result);
+  
+        // NOTE : 댓글 삭제
+        const [comment_result] = await connection.query(
+          `DELETE FROM innodb.comments WHERE user_id = ?`,
+          [user_id]
+        );
+        // console.log('Query executed successfully:', comment_result);
+
+        // NOTE : 의도적으로 에러 발생
+        // throw new Error('Intentional error for rollback test');
+
+        await connection.commit();
+
+        return true;
+  } catch (error) {
+    await connection.rollback();
+      console.error('Error deleting user:', error);
+      return false;
+
+  } finally {
+    // NOTE : 연결 반환
+    connection.release();
+  }
 };
