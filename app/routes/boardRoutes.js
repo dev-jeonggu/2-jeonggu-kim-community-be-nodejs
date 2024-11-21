@@ -18,9 +18,9 @@ const storage = multer.diskStorage({
 const upload = multer({ storage: storage });
 
 router.get('/', boardController.getBoardList);
+router.get('/:board_id', authenticateToken, boardController.getBoardInfo);
 router.post('/', authenticateToken, boardController.addBoard);
 
-router.get('/:board_id', authenticateToken, boardController.getBoardInfo);
 router.put('/:board_id', authenticateToken, boardController.editBoard);
 router.delete('/:board_id', authenticateToken, boardController.deleteBoard);
 
