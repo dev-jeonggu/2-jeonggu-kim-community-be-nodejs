@@ -12,7 +12,7 @@ exports.check = async (req, res) => {
         const result = await userModel.getUser(
             key, value
         );
-        return (200).json({ message: 'success', data: result });
+        return res.status(200).json({ message: 'success', data: result });
     } catch (error) {
         console.error(error);
         return res.status(500).json({ message: 'server error', data: null });
