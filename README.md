@@ -101,7 +101,7 @@ ver2 : react express mySQL<br>
   Open your browser and go to http://localhost:5555 to view the application.<br>
 
 
-# 시연 영상
+# Demo Video
 ### Jeonggu.kim's BOARD_v.1<br>
 [![Jeonggu.kim's BOARD_v.1](https://img.youtube.com/vi/J31R97Q49sQ/0.jpg)](https://youtu.be/J31R97Q49sQ)<br>
 
