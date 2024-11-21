@@ -143,26 +143,35 @@ exports.getBoardList = async (startPage = 1, endPage = 10) => {
 
     return selectedPosts;
 };*/
-exports.getBoardList = async (user_id, startPage = 1, endPage = 10) => {
+exports.getBoardList = async (startPage = 1, endPage = 10, searchKey, searchValue) => {
     const offset = (startPage - 1) * 10;
     const limit = endPage * 10;
+    const where = searchKey && searchValue ? `WHERE ${searchKey} LIKE ?` : '';
 
+    let query = `
+        SELECT 
+            b.board_id AS board_id
+        ,	b.title
+        ,   b.content
+        ,	b.reg_dt AS date
+        ,	b.user_id AS user_id
+        ,	u.nickname
+        ,	u.profile_url
+        ,	( SELECT COUNT(*) FROM innodb.likes WHERE board_id = b.board_id ) AS like_cnt
+        ,	( SELECT COUNT(*) FROM innodb.comments WHERE board_id = b.board_id ) AS comment_cnt
+        ,	( SELECT COUNT(*) FROM innodb.boardview WHERE board_id = b.board_id ) AS view_cnt
+        FROM innodb.boards b
+        INNER JOIN innodb.users u ON b.user_id = u.user_id
+        ${where}
+        ORDER BY b.reg_dt desc`;
+    ;
+    
     try {
-        const [boards] = await pool.promise().query(
-            `SELECT 
-                b.board_id AS board_id
-            ,	b.title
-            ,	b.reg_dt AS date
-            ,	b.user_id AS user_id
-            ,	u.nickname
-            ,	u.profile_url
-            ,	( SELECT COUNT(*) FROM innodb.likes WHERE board_id = b.board_id ) AS like_cnt
-            ,	( SELECT COUNT(*) FROM innodb.comments WHERE board_id = b.board_id ) AS comment_cnt
-            ,	( SELECT COUNT(*) FROM innodb.boardview WHERE board_id = b.board_id ) AS view_cnt
-            FROM innodb.boards b
-            INNER JOIN innodb.users u ON b.user_id = u.user_id`,
-            // [offset, limit]
-        );
+        const params = searchKey && searchValue 
+        ? [`%${searchValue}%`] 
+        : [];
+
+        const [boards] = await pool.promise().query(query, params);
 
         return boards;
     } catch (error) {
