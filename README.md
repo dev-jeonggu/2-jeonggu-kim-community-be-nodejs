@@ -106,7 +106,7 @@ ver2 : react express mySQL<br>
 [![Jeonggu.kim's BOARD_v.1](https://img.youtube.com/vi/J31R97Q49sQ/0.jpg)](https://youtu.be/J31R97Q49sQ)<br>
 
 ### Jeonggu.kim's BOARD_v.2<br>
-[![Jeonggu.kim's BOARD_v.2](https://img.youtube.com/vi/pqsBPss-uD8/0.jpg)](https://youtu.be/pqsBPss-uD8)<br>
+[![Jeonggu.kim's BOARD_v.2](https://img.youtube.com/vi/hMBgw9joVqM/0.jpg)](https://youtu.be/hMBgw9joVqM)<br>
 
  
 # Logs and Notes
