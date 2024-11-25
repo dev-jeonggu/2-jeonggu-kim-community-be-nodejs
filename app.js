@@ -17,7 +17,7 @@ const commentRoutes = require('./app/routes/commentRoutes');
 dotenv.config();
 
 const app = express();
-const PORT = process.env.PORT || 4444;
+const PORT = process.env.PORT || 3001;
 
 // NOTE : 특정 도메인만 허용 (예: 'http://localhost:3000'에서 요청 허용)
 app.options('*', cors());
