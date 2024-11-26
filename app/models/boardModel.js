@@ -93,7 +93,7 @@ exports.addBorad = async ({ title, content, email, image_nm, image_url, user_id}
 exports.addBoard = async ({ title, content, email, image_nm, image_url, user_id }) => {
     try {
         const [result] = await pool.promise().query(
-            `INSERT INTO innodb.boards (title, content, user_id, image_url, image_nm, reg_dt)
+            `INSERT INTO innodb.boards (title, content, user_id, image_nm, image_url, reg_dt)
              VALUES (?, ?, ?, ?, ?, NOW())`,
             [title, content, user_id, image_nm || null, image_url || null]
         );
