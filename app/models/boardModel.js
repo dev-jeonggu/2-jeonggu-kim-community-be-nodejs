@@ -1,35 +1,5 @@
-const path = require('path');
-const { formatDate } = require('../utils/utils'); // NOTE : utils.js에서 formatDate 가져오기
-const { getJsonData, saveJsonData } = require('../utils/utils'); // NOTE : utils.js에서 formatDate 가져오기
 const pool = require('../../config/db');
 
-const boardFilePath = path.join(__dirname, '../data/boardData.json');
-const userFilePath = path.join(__dirname, '../data/userData.json');
-const commentFilePath = path.join(__dirname, '../data/commentData.json');
-
-// NOTE : 특정 게시글에 대한 정보
-/*
-exports.getBoardById = async (board_id, email) => {
-    const jsonBoardData = await getJsonData(boardFilePath, "boards"); 
-    const board = jsonBoardData.boards.find(board => board.id === board_id);
-
-    let jsonUserData =  await getJsonData(userFilePath, "users"); 
-    jsonUserData.users = jsonUserData.users.filter(user => user.id == board.user_id); 
-
-    if (board) {
-        // NOTE : 좋아요 배열에 사용자의 이메일이 있는지 확인하고, isLike 값 설정
-        const isLike = board.likes ? board.likes.includes(email) : false;
-        return {
-            ...board,
-            likes: undefined, 
-            isLike: isLike,
-            profileUrl: jsonUserData.users[0].profile_url,
-            nickname: jsonUserData.users[0].nickname
-        };
-    }
-
-    return null;
-};*/
 exports.getBoardById = async (board_id, email, user_id) => {
     try {
         const [boards] = await pool.promise().query(
@@ -69,27 +39,6 @@ exports.getBoardById = async (board_id, email, user_id) => {
 };
 
 // NOTE : 게시글 추가하기
-/*
-exports.addBorad = async ({ title, content, email, image_nm, image_url, user_id}) => {
-    const jsonBoardData = await getJsonData(boardFilePath, "boards"); 
-    const reg_dt = formatDate(new Date());
-    const maxId = jsonBoardData.boards.reduce((max, board) => Math.max(max, board.id), 0);
-    const newPostId = maxId + 1;
-    const newPost = {
-        id: newPostId,
-        title,
-        content,
-        date: reg_dt,
-        email: email,
-        user_id: user_id,
-        image_nm: image_nm || null, // NOTE : image_nm이 없으면 null로 설정
-        image_url: image_url || null
-    };
-    jsonBoardData.boards.push(newPost);
-    await saveJsonData(boardFilePath, jsonBoardData);
-    return newPost;
-};
-*/
 exports.addBoard = async ({ title, content, email, image_nm, image_url, user_id }) => {
     try {
         const [result] = await pool.promise().query(
@@ -115,34 +64,6 @@ exports.addBoard = async ({ title, content, email, image_nm, image_url, user_id 
 };
 
 // NOTE: 게시글 목록 가져오기
-/*
-exports.getBoardList = async (startPage = 1, endPage = 10) => {
-    const jsonBoardData = await getJsonData(boardFilePath, "boards"); 
-    const jsonUserData = await getJsonData(userFilePath, "users");
-    const jsonCommentData = await getJsonData(commentFilePath, "comments");
-
-    const startIndex = (startPage - 1) * 10;
-    const endIndex = endPage * 10;
-    const selectedPosts = jsonBoardData.boards.slice(startIndex, endIndex).map(board => {
-
-        const user = jsonUserData.users.find(user => user.id === board.user_id);
-        const comments = jsonCommentData.comments.filter(comment => comment.board_id === board.id);
-
-        return {
-            board_id: board.id,
-            title: board.title,
-            like_cnt: board.like_cnt || 0,
-            comment_cnt: comments.length,
-            view_cnt: board.view_cnt || 0,
-            date: board.date || formatDate(new Date()),
-            nickname: user ? user.nickname : 'Unknown', // NOTE : 사용자가 있으면 nickname, 없으면 'Unknown'
-            profileUrl: user ? user.profile_url : '',
-            email: board.email
-        };
-    });
-
-    return selectedPosts;
-};*/
 exports.getBoardList = async (startPage = 1, endPage = 10, searchKey, searchValue) => {
     const offset = (startPage - 1) * 10;
     const limit = endPage * 10;
@@ -181,30 +102,6 @@ exports.getBoardList = async (startPage = 1, endPage = 10, searchKey, searchValu
 };
 
 // NOTE : 게시글 업데이트
-/*
-exports.editBoard = async (board_id, updatedData) => {
-    const jsonBoardData = await getJsonData(boardFilePath, "boards"); 
-    const boardIndex = jsonBoardData.boards.findIndex(board => board.id === board_id);
-
-    if (boardIndex === -1) {
-        throw new Error('board not found');
-    }
-
-    const board = jsonBoardData.boards[boardIndex];
-    // NOTE : 좋아요 배열이 없는 경우 초기화
-    if (!board.likes) {
-        board.likes = [];
-    }
-
-    jsonBoardData.boards[boardIndex] = { 
-        ...board
-        , ...updatedData
-        , image_nm: updatedData.image_nm || board.image_nm
-        , image_url: updatedData.image_url || board.image_url
-     };
-    await saveJsonData(boardFilePath, jsonBoardData);
-    return jsonBoardData.boards[boardIndex];
-};*/
 exports.editBoard = async (boardId, updatedData) => {
     try {
         const fields = ["title", "content", "image_url", "image_nm"];
@@ -244,28 +141,6 @@ exports.editBoard = async (boardId, updatedData) => {
 
 
 // NOTE : 게시글 삭제
-/*
-exports.deleteBoard = async (board_id) => {
-    const jsonBoardData = await getJsonData(boardFilePath, "boards"); 
-    const jsonCommentData = await getJsonData(commentFilePath, "comments");
-
-    // NOTE : 삭제할 게시글을 찾기
-    const boardIndex = jsonBoardData.boards.findIndex(board => board.id === board_id);
-    
-    if (boardIndex !== -1) {
-        // NOTE : 게시글 삭제
-        jsonBoardData.boards.splice(boardIndex, 1); 
-        await saveJsonData(boardFilePath, jsonBoardData);
-
-        // NOTE : 해당 게시글과 관련된 댓글 삭제
-        jsonCommentData.comments = jsonCommentData.comments.filter(comment => comment.board_id !== board_id);
-        await saveJsonData(commentFilePath, jsonCommentData);
-        
-        return true;
-    }
-    return false; // 해당 게시글이 없을 경우
-};
-*/
 exports.deleteBoard = async (board_id) => {
     try {
         const [result] = await pool.promise().query(
@@ -288,19 +163,6 @@ exports.deleteBoard = async (board_id) => {
     }
 };
 // NOTE : 조회수 증가하기
-/*
-exports.addViewCount = async (board_id) => {
-    const jsonBoardData = await getJsonData(boardFilePath, "boards"); 
-
-    const boardIndex = jsonBoardData.boards.findIndex(board => board.id === board_id);
-
-    if (boardIndex !== -1) {
-        jsonBoardData.boards[boardIndex].view_cnt = (jsonBoardData.boards[boardIndex].view_cnt || 0) + 1;
-        await saveJsonData(boardFilePath, jsonBoardData);
-        return jsonBoardData.boards[boardIndex];
-    }
-    return null; // NOTE : 게시글이 없을 경우 null 반환
-};*/
 exports.addViewCount = async (board_id, user_id) => {
     try {
         const [result] = await pool.promise().query(
@@ -316,32 +178,6 @@ exports.addViewCount = async (board_id, user_id) => {
 };
 
 // NOTE : 좋아요 누르기
-/*
-exports.likeBoard = async (board_id, email) => {
-    const jsonBoardData = await getJsonData(boardFilePath, "boards"); 
-    const boardIndex = jsonBoardData.boards.findIndex(board => board.id === board_id);
-
-    if (boardIndex !== -1) {
-        const board = jsonBoardData.boards[boardIndex];
-        
-        // NOTE : 좋아요 누른 사용자 확인 (중복 방지)
-        if (!board.likes) board.likes = []; // lNOTE : ikes 필드가 없으면 배열 초기화
-        
-        if (board.likes.includes(email)) {
-            board.likes = board.likes.filter(email => email !== email);
-            board.like_cnt = (board.like_cnt || 1) - 1;
-        } else {
-            // NOTE : 좋아요 추가
-            board.likes.push(email);
-            board.like_cnt = (board.like_cnt || 0) + 1;
-        }
-
-        await saveJsonData(boardFilePath, jsonBoardData);
-        return { like_cnt: board.like_cnt };
-    }
-    return null; // NOTE : 게시글이 없을 경우 null 반환
-};
-*/
 exports.likeBoard = async (board_id, user_id) => {
     try {
         // NOTE : 게시글 존재 여부 확인
