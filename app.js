@@ -57,6 +57,13 @@ app.use(helmet.contentSecurityPolicy({
     }
 }));
 
+// NOTE : server에서 에러나서 추가
+app.use((req, res, next) => {
+    res.removeHeader("Cross-Origin-Opener-Policy");
+    next();
+});
+
+
 // NOTE : 사용자 관련
 //app.use('/api/users', expressRoutes);
 app.use('/api', expressRoutes);
@@ -73,64 +80,11 @@ app.use((err, req, res, next) => {
     res.status(err.status || 500).json({ message: err.message, data: null });
 });
 
-
-// app.get('/helloworld', (req, res) => {
-//     res.sendFile(path.join(__dirname, 'app/views/helloworld.html'));
-// });
-
 app.use(express.static(path.join(__dirname, 'resources')));
 app.use('/css', express.static(path.join(__dirname, 'resources/css')));
 
-// app.get('/', (req, res) => {
-//     res.sendFile(path.join(__dirname, 'app/views/login.html'));
-// });
-// // NOTE : 회원 가입
-// app.get('/register', (req, res) => {
-//     res.sendFile(path.join(__dirname, 'app/views/register.html'));
-// });
-// // NOTE : 로그인
-// app.get('/login', (req, res) => {
-//     res.sendFile(path.join(__dirname, 'app/views/login.html'));
-// });
-// // NOTE : 게시판 리스트
-// app.get('/board', (req, res) => {
-//     res.sendFile(path.join(__dirname, 'app/views/board/board.html'));
-// });
-// //NOTE : 게시판 상세 
-// app.get('/boardInfo', (req, res) => {
-//     res.sendFile(path.join(__dirname, 'app/views/board/boardInfo.html'));
-// });
-// // NOTE : 게시판 수정
-// app.get('/boardEdit', (req, res) => {
-//     res.sendFile(path.join(__dirname, 'app/views/board/boardEdit.html'));
-// });
-// // NOTE : 게시판 추가
-// app.get('/boardAdd', (req, res) => {
-//     res.sendFile(path.join(__dirname, 'app/views/board/boardAdd.html'));
-// });
-// // NOTE : 회원 수정
-// app.get('/userEdit', (req, res) => {
-//     res.sendFile(path.join(__dirname, 'app/views/user/userEdit.html'));
-// });
-
-// NOTE : 데이터베이스 연결
-// const db = mysql.createConnection({
-//     host: 'localhost',
-//     user: 'root',
-//     password: 'admin!123',
-//     database: 'test'
-// });
-
-// db.connect(err => {
-//     if (err) {
-//         console.error('DB 연결 실패: ' + err.stack);
-//         return;
-//     }
-//     console.log('DB 연결 성공!');
-// });
-
 // NOTE : 서버시작
-app.listen(PORT, () => {
+app.listen(PORT, '0.0.0.0', () => {
     console.log(`Server is running on http://localhost:${PORT}`);
 });
 

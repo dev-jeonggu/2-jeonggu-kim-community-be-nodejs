@@ -24,7 +24,6 @@ router.post('/', authenticateToken, boardController.addBoard);
 router.put('/:board_id', authenticateToken, boardController.editBoard);
 router.delete('/:board_id', authenticateToken, boardController.deleteBoard);
 
-// router.get('/boardInfo', boardController.getBoardInfo);
 router.post('/like', authenticateToken, boardController.likeBoard);
 router.patch('/view/:board_id', authenticateToken, boardController.addViewCount);
 router.post('/image', upload.single('boardImage'), boardController.uploadImage);
