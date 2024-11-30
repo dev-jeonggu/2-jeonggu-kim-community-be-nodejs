@@ -1,6 +1,6 @@
 const pool = require('../../config/db');
 
-exports.getUser = async(key, value) =>{
+exports.getUser = async(key, value) => {
     try {
         // NOTE: MySQL 쿼리를 실행하여 조건에 맞는 사용자 데이터를 가져옴
         const [rows] = await pool.promise().query(

@@ -1,6 +1,6 @@
 const userModel = require('../models/userModel');
-// const utils = require('../utils/utils');
 const { generateToken } = require('../utils/jwt');
+const { decodeBase64, encryptPassword } = require('../utils/utils');
 
 const path = require('path');
 const fs = require('fs');
@@ -42,18 +42,20 @@ exports.getUserInfo = async (req, res) => {
 // NOTE: 회원 추가
 exports.addUser = async (req, res) => {
     const { email, password, nickname, profile_url } = req.body;
-    
     if (!email && !nickname && !password && !profile_url) {
         return res.status(400).json({ message: 'required' });
     }
+    
+    const decodingPassword = decodeBase64(password);
+    const bcryptPassword = await encryptPassword(decodingPassword);
 
     try {
         // NOTE : 데이터베이스에 사용자 추가
         const result = await userModel.addUser(
-            email || null,
-            password || null,
-            nickname || null,
-            profile_url || null
+            email || null
+        ,   bcryptPassword || null
+        ,   nickname || null
+        ,   profile_url || null
         );
         return res.status(200).json({ message: 'success', data: result });
     } catch (error) {
@@ -72,6 +74,9 @@ exports.updateUser = async (req, res) => {
         return res.status(400).json({ message: 'Nickname or password is required' });
     }
 
+    const decodingPassword = decodeBase64(password);
+    const bcryptPassword = await encryptPassword(decodingPassword);
+
     const user_id = req.user?.user_id;
     if (!user_id) {
         return res.status(401).json({ message: 'Unauthorized: User ID not found in session' });
@@ -81,7 +86,7 @@ exports.updateUser = async (req, res) => {
         const updateData = {};
         if (nickname) updateData.nickname = nickname;
         if (profile_url) updateData.profile_url = profile_url; 
-        if (password) updateData.password = password; 
+        if (bcryptPassword) updateData.password = bcryptPassword; 
 
         const updatedUser = await userModel.updateUser(user_id, updateData);
 

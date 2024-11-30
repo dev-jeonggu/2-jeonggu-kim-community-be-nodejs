@@ -1,7 +1,6 @@
 const authModel = require('../models/authModel');
 const { generateToken } = require('../utils/jwt');
-
-const jwt = require("jsonwebtoken");
+const { decodeBase64 } = require('../utils/utils');
 
 // NOTE: 로그인
 exports.login = async (req, res) => {
@@ -10,8 +9,8 @@ exports.login = async (req, res) => {
         if (!email || !password) { // NOTE : email 또는 password가 없으면 에러 반환
             return res.status(400).json({ message: 'Invalid credentials' });
         }
-        
-        const result = await authModel.login(email, password);
+        const decodingPassword = decodeBase64(password);
+        const result = await authModel.login(email, decodingPassword);
 
         if (result.success) {
             // NOTE : JWT 생성

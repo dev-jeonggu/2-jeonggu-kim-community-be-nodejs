@@ -1,3 +1,7 @@
+const path = require('path');
+const bcrypt = require('bcryptjs');
+const atob = require('atob');
+
 const formatDate = (date) => {
     const year = date.getFullYear();
     const month = String(date.getMonth() + 1).padStart(2, '0');
@@ -40,4 +44,52 @@ const saveJsonData = async (filePath, data) => {
     }
 };
 
-module.exports = { formatDate, getJsonData,  saveJsonData};
+const sendFile = (res, directory, filename) => {
+    const filePath = path.join(__dirname, '..', 'images', directory, filename);
+
+    res.sendFile(filePath, (err) => {
+        if (err) {
+            console.error('Error sending file:', err);
+            return res.status(404).send('File not found');
+        }
+    });
+};
+
+const decodeBase64 = (value) => {
+    try{
+        const decodingValue = atob(value);
+        return decodingValue;
+    } catch(error){
+        console.log(error);
+        return "";
+    }
+
+} 
+
+const validatePassword = async (password, checkPassword) => {
+    try{
+        const isMatch = await bcrypt.compare(password, checkPassword);
+        if (isMatch) {
+            return true;
+        } else {
+            return false;
+        }
+    } catch(error){
+        console.log(error);
+        return false;
+    }
+
+}
+
+const encryptPassword = async (password) => {
+    try{
+        const saltRounds = 10;
+        const hashedPassword = await bcrypt.hash(password, saltRounds);
+        return hashedPassword;
+    } catch(error){
+        console.log(error);
+        return "";
+    }
+};
+
+module.exports = { formatDate, getJsonData,  saveJsonData, sendFile, decodeBase64, encryptPassword, validatePassword};
