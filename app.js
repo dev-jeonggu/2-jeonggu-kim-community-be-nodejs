@@ -1,15 +1,12 @@
 const express = require('express');
 const path = require('path');
 const bodyParser = require('body-parser');
-const rateLimit = require('express-rate-limit');
 const dotenv = require('dotenv');
 const helmet = require('helmet');
 const cookieParser = require('cookie-parser');
 const cors = require('cors');
-const expressRoutes = require('./app/routes/expressRoutes/expressRoutes');
-
 // NOTE : authRoutes와 isAuthenticated 임포트
-const { router: authRoutes } = require('./app/routes/authRoutes');
+const authRoutes = require('./app/routes/authRoutes');
 const userRoutes = require('./app/routes/userRoutes');
 const boardRoutes = require('./app/routes/boardRoutes');
 const commentRoutes = require('./app/routes/commentRoutes');
@@ -39,14 +36,6 @@ app.use(cookieParser());
 
 app.use('/images', express.static(path.join(__dirname, 'images')));
 
-// NOTE : 요청 속도 제한 설정
-const limiter = rateLimit({
-    windowMs: 15 * 60 * 1000,
-    limit: 100,
-    standardHeaders: 'draft-7',
-    legacyHeaders: false,
-});
-
 // NOTE : Helmet을 사용한 Content Security Policy
 app.use(helmet.contentSecurityPolicy({
     directives: {
@@ -63,12 +52,6 @@ app.use((req, res, next) => {
     next();
 });
 
-
-// NOTE : 사용자 관련
-//app.use('/api/users', expressRoutes);
-app.use('/api', expressRoutes);
-app.post('/login', expressRoutes);
-app.get('/dashboard', expressRoutes);
 
 // NOTE : 커뮤니티 관련
 app.use('/auth', authRoutes);
