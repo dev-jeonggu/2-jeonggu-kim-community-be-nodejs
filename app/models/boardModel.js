@@ -20,12 +20,13 @@ exports.getBoardById = async (board_id, email, user_id) => {
                     SELECT * 
                     FROM innodb.boards
                     WHERE user_id = ?
+                    AND board_id = ?
                 ) THEN TRUE 
                 ELSE FALSE END AS isAuthor
             FROM innodb.boards b
             INNER JOIN innodb.users u ON b.user_id = u.user_id
             WHERE b.board_id = ?`,
-            [user_id, board_id]
+            [user_id, board_id, board_id]
         );
 
         if (boards.length > 0) {
@@ -162,6 +163,7 @@ exports.deleteBoard = async (board_id) => {
         throw new Error('Failed to delete board');
     }
 };
+
 // NOTE : 조회수 증가하기
 exports.addViewCount = async (board_id, user_id) => {
     try {
