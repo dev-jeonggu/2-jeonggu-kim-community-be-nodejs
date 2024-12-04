@@ -1,6 +1,4 @@
 const boardModel = require('../models/boardModel');
-const path = require('path');
-const fs = require('fs');
 
 // NOTE : 게시글 전체 조회
 exports.getBoardList = async (req, res) => {
@@ -136,33 +134,4 @@ exports.addViewCount = async (req, res) => {
         console.error('Error incrementing view count:', error);
         return res.status(500).json({ message: 'server error' });
     }
-};
-
-// NOTE : 파일 업로드 처리 함수
-exports.uploadImage = (req, res) => {
-    if (!req.file) {
-        return res.status(400).json({ message: '파일이 업로드되지 않았습니다.' });
-    }
-
-    const filePath = `../images/board/${req.file.filename}`;
-    res.json({ message: '파일 업로드 성공', filePath });
-};
-
-// NOTE : 이미지 업로드
-exports.loadImage = (req, res) => {
-    const filename = req.params.filename;
-    const filePath = path.join(__dirname, '..', 'images', 'board', filename);
-    
-    fs.access(filePath, fs.constants.F_OK, (err) => {
-        res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin'); 
-        res.setHeader('Access-Control-Allow-Origin', 'http://localhost:5555'); // NOTE : 클라이언트 도메인
-        res.setHeader('Access-Control-Allow-Credentials', 'true');
-
-        res.sendFile(filePath, (err) => {
-            if (err) {
-                console.error('파일 전송 중 오류 발생:', err);
-                return res.status(500).json({ message: '파일 전송 중 오류 발생' });
-            }
-        });
-    });
 };
