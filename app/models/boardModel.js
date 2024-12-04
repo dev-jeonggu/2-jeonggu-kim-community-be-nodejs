@@ -10,6 +10,7 @@ exports.getBoardById = async (board_id, email, user_id) => {
             ,	b.reg_dt AS date
             ,	b.user_id AS user_id
             ,	b.image_url
+            ,	b.image_nm
             ,   u.email
             ,	u.nickname
             ,	u.profile_url

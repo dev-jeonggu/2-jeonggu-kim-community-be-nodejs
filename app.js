@@ -10,6 +10,7 @@ const authRoutes = require('./app/routes/authRoutes');
 const userRoutes = require('./app/routes/userRoutes');
 const boardRoutes = require('./app/routes/boardRoutes');
 const commentRoutes = require('./app/routes/commentRoutes');
+const commonRoutes = require('./app/routes/commonRoutes');
 
 dotenv.config();
 
@@ -58,7 +59,11 @@ app.use('/auth', authRoutes);
 app.use('/users', userRoutes);
 app.use('/boards', boardRoutes);
 app.use('/comments', commentRoutes);
-app.use('/images', express.static(path.join(__dirname, 'app/images')));
+
+app.use(express.json({ limit: '50mb' }));
+app.use(express.urlencoded({ extended: true, limit: '50mb' }));
+app.use('/images', commonRoutes);
+//app.use('/images', express.static(path.join(__dirname, 'app/images')));
 app.use((err, req, res, next) => {
     res.status(err.status || 500).json({ message: err.message, data: null });
 });
