@@ -1,6 +1,8 @@
 const userModel = require('../models/userModel');
 const { generateToken } = require('../utils/jwt');
 const { decodeBase64, encryptPassword } = require('../utils/utils');
+const path = require('path');
+const fs = require('fs');
 
 // NOTE : key value로 정보 가져오기
 exports.check = async (req, res) => {
@@ -128,4 +130,26 @@ exports.deleteUser = async (req, res) => {
         console.error('회원 삭제 중 오류:', error);
         return res.status(500).json({ message: '회원 삭제 중 오류가 발생했습니다.' });
     }
+};
+
+// NOTE : 파일 제공 처리 함수
+exports.loadImage = (req, res) => {
+    const filename = req.params.filename;
+    const filePath = path.join(__dirname, '..', 'images', 'profile', filename);
+    const defaultFilePath = path.join(__dirname, '..', 'images', 'profile', 'default.png'); // NOTE : 기본 이미지 경로
+    fs.access(filePath, fs.constants.F_OK, (err) => {
+        if (err) {
+            console.warn('요청된 파일이 없으므로 기본 이미지를 반환합니다.');
+            return res.sendFile(defaultFilePath);
+        }
+        res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin'); 
+        res.setHeader('Access-Control-Allow-Origin', 'http://localhost:5555'); // NOTE : 클라이언트 도메인
+        res.setHeader('Access-Control-Allow-Credentials', 'true');
+        res.sendFile(filePath, (err) => {
+            if (err) {
+                console.error('파일 전송 중 오류 발생:', err);
+                return res.status(500).json({ message: '파일 전송 중 오류 발생' });
+            }
+        });
+    });
 };
