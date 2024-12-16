@@ -5,11 +5,25 @@ const path = require('path');
 const fs = require('fs');
 
 // NOTE : key value로 정보 가져오기
-exports.check = async (req, res) => {
+exports.checkGet = async (req, res) => {
     const {key, value} = req.query;
     try {
         const result = await userModel.getUser(
             key, value
+        );
+        return res.status(200).json({ message: 'success', data: result });
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json({ message: 'server error', data: null });
+    }
+};
+
+exports.checkPost = async (req, res) => {
+    const {key, value} = req.body;
+    const user_id = req.user?.user_id;
+    try {
+        const result = await userModel.getUser(
+            key, value, user_id
         );
         return res.status(200).json({ message: 'success', data: result });
     } catch (error) {

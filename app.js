@@ -24,6 +24,7 @@ app.use(cors({
     /// 3000: re, 5555 : fe
     origin: ['http://localhost:3000', 'http://localhost:5555', process.env.FRONT_URL, process.env.DOCKER_URL, process.env.NGINX_URL],
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'], // NOTE : 허용할 메서드 지정
+    allowedHeaders: ['Authorization', 'CurrentPage', 'Content-Type'],
     credentials: true // NOTE : 세션 쿠키 전송을 허용
 }));
 

@@ -1,23 +1,24 @@
 const pool = require('../../config/db');
 
-exports.getBoardById = async (board_id, email, user_id) => {
+exports.getBoardById = async (board_id, user_id, url = null) => {
     try {
-        const [boards] = await pool.promise().query(
-            `SELECT
+        let params = [user_id, board_id, board_id];
+        let baseQuery = `
+            SELECT
                 b.board_id AS board_id
-            ,	b.title
-            ,	b.content
-            ,	b.reg_dt AS date
-            ,	b.user_id AS user_id
-            ,	b.image_url
-            ,	b.image_nm
+            ,   b.title
+            ,   b.content
+            ,   b.reg_dt AS date
+            ,   b.user_id AS user_id
+            ,   b.image_url
+            ,   b.image_nm
             ,   u.email
-            ,	u.nickname
-            ,	u.profile_url
-            ,	( SELECT COUNT(*) FROM innodb.likes WHERE board_id = b.board_id )as like_cnt
-            ,	( SELECT COUNT(*) FROM innodb.comments WHERE board_id = b.board_id )as comment_cnt
-            ,	( SELECT COUNT(*) FROM innodb.boardview WHERE board_id = b.board_id )as view_cnt
-            ,	CASE WHEN EXISTS (
+            ,   u.nickname
+            ,   u.profile_url
+            ,   ( SELECT COUNT(*) FROM innodb.likes WHERE board_id = b.board_id )as like_cnt
+            ,   ( SELECT COUNT(*) FROM innodb.comments WHERE board_id = b.board_id )as comment_cnt
+            ,   ( SELECT COUNT(*) FROM innodb.boardview WHERE board_id = b.board_id )as view_cnt
+            ,   CASE WHEN EXISTS (
                     SELECT * 
                     FROM innodb.boards
                     WHERE user_id = ?
@@ -26,9 +27,14 @@ exports.getBoardById = async (board_id, email, user_id) => {
                 ELSE FALSE END AS isAuthor
             FROM innodb.boards b
             INNER JOIN innodb.users u ON b.user_id = u.user_id
-            WHERE b.board_id = ?`,
-            [user_id, board_id, board_id]
-        );
+            WHERE b.board_id = ?`;
+        
+        if (url != 'boardInfo') {
+            baseQuery += ' AND b.user_id = ?';
+            params = [user_id, board_id, board_id, user_id];
+        }
+
+        const [boards] = await pool.promise().query(baseQuery, params);
 
         if (boards.length > 0) {
             return boards[0];

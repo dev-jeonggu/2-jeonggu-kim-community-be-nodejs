@@ -45,14 +45,20 @@ exports.addBoard = async (req, res) => {
 // NOTE : 특정 게시글 조회
 exports.getBoardInfo = async (req, res) => {
     const board_id = parseInt(req.params.board_id, 10);
-    const email = req.user?.email || null;
     const user_id = req.user?.user_id || null;
+    let url = null;
+    const referrer = req.headers['currentpage'] || null;
+    if(referrer != null){
+        const urlObj = new URL(referrer);
+        url = urlObj.pathname.split('/')[1];
+    }
+
     if (!board_id) {
         return res.status(400).json({ message: "invalid", data: null });
     }
     
     try {
-        const board = await boardModel.getBoardById(board_id, email, user_id);
+        const board = await boardModel.getBoardById(board_id, user_id, url);
         if (board) {
             return res.status(200).json({ message: 'success', data: board });
         } else {
