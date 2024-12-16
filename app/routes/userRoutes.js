@@ -5,7 +5,8 @@ const authenticateToken = require("../middleware/authenticateToken");
 
 router.patch('/', authenticateToken, userController.updateUser);
 router.post('/', userController.addUser);
-router.get('/check',  userController.check);
+router.get('/check',  userController.checkGet);
+router.post('/check',  authenticateToken, userController.checkPost);
 router.get('/', authenticateToken, userController.getUserInfo);
 router.delete('/', authenticateToken, userController.deleteUser);
 

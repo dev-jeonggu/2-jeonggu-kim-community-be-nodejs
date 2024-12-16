@@ -1,34 +1,36 @@
 const pool = require('../../config/db');
 
-exports.getUser = async(key, value) => {
-    try {
-        // NOTE: MySQL 쿼리를 실행하여 조건에 맞는 사용자 데이터를 가져옴
-        const [rows] = await pool.promise().query(
-          `SELECT user_id, nickname, email, profile_url FROM innodb.users WHERE ?? = ?`,
-          [key, value]
-        );
-    
-        if (rows.length > 0) {
-          // NOTE: 데이터가 존재할 경우 검증 실패 메시지 반환
-          return {
-            success: false,
-            // message: "검증에 실패하였습니다.",
-            user_id: rows[0].user_id,
-            nickname: rows[0].nickname,
-            email: rows[0].email,
-            profile_url: rows[0].profile_url
-          };
-        } else {
-          // NOTE: 데이터가 없을 경우 검증 성공 메시지 반환
-          return {
-            success: true
-            // ,message: "검증에 성공하였습니다."
-          };
-        }
-      } catch (err) {
-        console.error('DB 쿼리 실행 중 오류 발생:', err);
-        throw new Error('데이터베이스 요청 중 오류가 발생했습니다.');
-      }
+exports.getUser = async (key, value, user_id) => {
+  try {
+    let sql = `SELECT user_id, nickname, email, profile_url FROM innodb.users WHERE ?? = ?`;
+    const params = [key, value];
+
+    // NOTE : user_id가 존재하면 조건 추가
+    if (user_id) {
+      sql += ` AND user_id != ?`;
+      params.push(user_id);
+    }
+
+    // 쿼리 실행
+    const [rows] = await pool.promise().query(sql, params);
+
+    if (rows.length > 0) {
+      // NOTE: 데이터가 존재할 경우 검증 실패 메시지 반환
+      return {
+        success: false,
+        user_id: rows[0].user_id,
+        nickname: rows[0].nickname,
+        email: rows[0].email,
+        profile_url: rows[0].profile_url,
+      };
+    } else {
+      // NOTE: 데이터가 없을 경우 검증 성공 메시지 반환
+      return { success: true };
+    }
+  } catch (err) {
+    console.error("DB 쿼리 실행 중 오류 발생:", err);
+    throw new Error("데이터베이스 요청 중 오류가 발생했습니다.");
+  }
 };
 
 exports.addUser = async (email, password, nickname, profile_url) => {
