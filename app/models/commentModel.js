@@ -35,9 +35,13 @@ exports.getCommentsByBoardId = async (board_id, user_id) => {
             ,   c.content
             ,   c.user_id
             ,   c.reg_dt
+            ,   c.chg_dt
             ,   CASE WHEN c.user_id = ? THEN TRUE 
                     ELSE FALSE 
                 END AS isAuthor
+            ,   CASE WHEN c.chg_dt is not null THEN TRUE 
+                    ELSE FALSE 
+                END AS isChange
             FROM innodb.boards b
             INNER JOIN innodb.comments c ON b.board_id = c.board_id
             INNER JOIN innodb.users u ON c.user_id = u.user_id
