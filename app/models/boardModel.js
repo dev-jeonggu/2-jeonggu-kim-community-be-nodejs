@@ -12,6 +12,7 @@ exports.getBoardById = async (board_id, user_id, url = null) => {
             ,   b.user_id AS user_id
             ,   b.image_url
             ,   b.image_nm
+            ,   b.chg_dt
             ,   u.email
             ,   u.nickname
             ,   u.profile_url
@@ -25,6 +26,13 @@ exports.getBoardById = async (board_id, user_id, url = null) => {
                     AND board_id = ?
                 ) THEN TRUE 
                 ELSE FALSE END AS isAuthor
+            ,   CASE WHEN EXISTS (
+                    SELECT * 
+                    FROM innodb.boards
+                    WHERE board_id = b.board_id
+                    AND chg_dt is not null
+                ) THEN TRUE 
+                ELSE FALSE END AS isChange
             FROM innodb.boards b
             INNER JOIN innodb.users u ON b.user_id = u.user_id
             WHERE b.board_id = ?`;
@@ -84,6 +92,7 @@ exports.getBoardList = async (startPage = 1, endPage = 10, searchKey, searchValu
         ,   b.content
         ,	b.reg_dt AS date
         ,	b.user_id AS user_id
+        ,   b.chg_dt
         ,	u.nickname
         ,	u.profile_url
         ,	( SELECT COUNT(*) FROM innodb.likes WHERE board_id = b.board_id ) AS like_cnt
@@ -124,6 +133,9 @@ exports.editBoard = async (boardId, updatedData) => {
         if (updates.length === 0) {
             throw new Error("No fields to update");
         }
+
+        // NOTE : 수정 시간 업데이트 추가
+        updates.push("chg_dt = NOW()");
 
         // NOTE : WHERE 조건 추가
         params.push(boardId);
