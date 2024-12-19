@@ -8,7 +8,7 @@ async function login(email, password){
             `SELECT user_id, nickname, password, email, profile_url FROM innodb.users WHERE email = ?`,
             [email]
         );
-        
+
         if (rows.length > 0) {
             const validate = await validatePassword(password, rows[0].password);
             if(validate) {
