@@ -1,3 +1,4 @@
+const { LicenseManagerLinuxSubscriptions } = require('aws-sdk');
 const pool = require('../../config/db');
 
 exports.getBoardById = async (board_id, user_id, url = null) => {
@@ -80,43 +81,55 @@ exports.addBoard = async ({ title, content, email, image_nm, image_url, user_id 
 };
 
 // NOTE: 게시글 목록 가져오기
-exports.getBoardList = async (startPage = 1, endPage = 10, searchKey, searchValue) => {
-    const offset = (startPage - 1) * 10;
-    const limit = endPage * 10;
+exports.getBoardList = async (page = 1, limit, searchKey, searchValue) => {
     const where = searchKey && searchValue ? `WHERE ${searchKey} LIKE ?` : '';
+    const offset = (page - 1) * limit;
 
     let query = `
         SELECT 
             b.board_id AS board_id
-        ,	b.title
+        ,   b.title
         ,   b.content
-        ,	b.reg_dt AS date
-        ,	b.user_id AS user_id
+        ,   b.reg_dt AS date
+        ,   b.user_id AS user_id
         ,   b.chg_dt
-        ,	u.nickname
-        ,	u.profile_url
-        ,	( SELECT COUNT(*) FROM innodb.likes WHERE board_id = b.board_id ) AS like_cnt
-        ,	( SELECT COUNT(*) FROM innodb.comments WHERE board_id = b.board_id ) AS comment_cnt
-        ,	( SELECT COUNT(*) FROM innodb.boardview WHERE board_id = b.board_id ) AS view_cnt
+        ,   u.nickname
+        ,   u.profile_url
+        ,   ( SELECT COUNT(*) FROM innodb.likes WHERE board_id = b.board_id ) AS like_cnt
+        ,   ( SELECT COUNT(*) FROM innodb.comments WHERE board_id = b.board_id ) AS comment_cnt
+        ,   ( SELECT COUNT(*) FROM innodb.boardview WHERE board_id = b.board_id ) AS view_cnt
         FROM innodb.boards b
         INNER JOIN innodb.users u ON b.user_id = u.user_id
         ${where}
-        ORDER BY b.reg_dt desc`;
+        ORDER BY b.reg_dt DESC
+        LIMIT ? OFFSET ?`;
     ;
-    
+
     try {
-        const params = searchKey && searchValue 
-        ? [`%${searchValue}%`] 
-        : [];
+        const params = searchKey && searchValue
+            ? [`%${searchValue}%`, limit + 1, offset] // LIMIT + 1
+            : [limit + 1, offset]; // LIMIT + 1
 
         const [boards] = await pool.promise().query(query, params);
 
-        return boards;
+        // // 다음 데이터가 있는지 판단
+        const hasMore = boards.length > limit;
+
+        if (hasMore) {
+            boards.pop(); // LIMIT + 1로 가져온 마지막 데이터 제거
+        }
+
+        // return boards;
+        return {
+            boards,
+            hasMore,
+        };
     } catch (error) {
         console.error('Error fetching board list:', error);
         throw new Error('Failed to fetch board list');
     }
 };
+
 
 // NOTE : 게시글 업데이트
 exports.editBoard = async (boardId, updatedData) => {

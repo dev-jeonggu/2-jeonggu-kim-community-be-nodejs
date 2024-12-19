@@ -4,21 +4,26 @@ const fs = require('fs');
 
 // NOTE : 게시글 전체 조회
 exports.getBoardList = async (req, res) => {
-    const startPage = parseInt(req.query.startPage, 10) || 1;
-    const endPage = parseInt(req.query.endPage, 10) || 10;
+    const page = parseInt(req.query.currentPage) || 1;
+    const limit = 5;
+
     const searchKey = req.query.searchKey;
     const searchValue = req.query.searchValue;
-    
-    if (startPage <= 0 || endPage < startPage) {
-        return res.status(400).json({ message: "invalid", data: null });
-    }
 
     try {
-        const boardList = await boardModel.getBoardList(startPage, endPage, searchKey, searchValue);
-        return res.status(200).json({ message: "success", data: boardList });
+        const { boards, hasMore } = await boardModel.getBoardList(page, limit, searchKey, searchValue);
+        // const boards = await boardModel.getBoardList(page, limit, searchKey, searchValue);
+        return res.status(200).json({ 
+            message: "success", 
+            data: boards,
+            hasMore: hasMore,
+        });
     } catch (error) {
         console.error('Error fetching board list:', error);
-        return res.status(500).json({ message: "server error", data: null });
+        return res.status(500).json({ 
+            message: "server error", 
+            data: null 
+        });
     }
 };
 
