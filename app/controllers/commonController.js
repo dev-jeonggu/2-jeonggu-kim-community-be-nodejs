@@ -1,6 +1,7 @@
 const AWS = require('aws-sdk');
 const fs = require('fs');
 const path = require('path');
+const sharp = require("sharp");
 
 // NOTE :S3 및 CloudFront 설정
 const s3 = new AWS.S3({
@@ -41,10 +42,18 @@ exports.uploadFile = async (req, res) => {
   try {
     const file = req.file;
     // NOTE :S3에 파일 업로드
-    const s3Url = await uploadToS3(file.buffer, file.originalname, file.mimetype, folderName);
+    // NOTE : sharp로 이미지 변환 및 압축
+    const compressedBuffer = await sharp(file.buffer)
+      .resize(800) // NOTE : 이미지 폭 800px
+      .jpeg({ quality: 50 })
+      .toBuffer();
+
+    const newFileName = `${file.originalname.replace(/\.[^/.]+$/, ".webp")}`; // NOTE : 확장자를 .webp로 변경
+
+    const s3Url = await uploadToS3(compressedBuffer, newFileName, file.mimetype, folderName);
 
     // NOTE: 업로드 후 파일 삭제 (uploads 폴더에 저장된 경우)
-    const tempFilePath = path.join(__dirname, '../uploads', file.originalname); // 파일 경로 생성
+    const tempFilePath = path.join(__dirname, '../uploads', file.originalname); // NOTE : 파일 경로 생성
     if (fs.existsSync(tempFilePath)) {
       fs.unlinkSync(tempFilePath); // 파일 삭제
     }
