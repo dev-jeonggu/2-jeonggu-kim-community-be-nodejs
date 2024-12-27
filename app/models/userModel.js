@@ -2,7 +2,7 @@ const pool = require('../../config/db');
 
 exports.getUser = async (key, value, user_id) => {
   try {
-    let sql = `SELECT user_id, nickname, email, profile_url FROM innodb.users WHERE ?? = ?`;
+    let sql = `SELECT user_id, nickname, email, profile_url FROM users WHERE ?? = ?`;
     const params = [key, value];
 
     // NOTE : user_id가 존재하면 조건 추가
@@ -37,7 +37,7 @@ exports.addUser = async (email, password, nickname, profile_url) => {
     try {
         // NOTE : MySQL INSERT 쿼리 실행
         const [result] = await pool.promise().query(
-            `INSERT INTO innodb.users (email, password, nickname, profile_url) VALUES (?, ?, ?, ?)`,
+            `INSERT INTO users (email, password, nickname, profile_url) VALUES (?, ?, ?, ?)`,
             [email, password, nickname, profile_url]
         );
 
@@ -69,7 +69,7 @@ exports.updateUser = async (user_id, updateData) => {
 
       // NOTE: 업데이트 쿼리 실행
       const [result] = await pool.promise().query(
-          `UPDATE innodb.users
+          `UPDATE users
            SET email = COALESCE(?, email),
                password = COALESCE(?, password),
                nickname = COALESCE(?, nickname),
@@ -98,19 +98,19 @@ exports.deleteUser = async (user_id) => {
         // NOTE : (추가) : 트랜잭션 적용하기
         await connection.beginTransaction();
         const [user_result] = await pool.promise().query(
-          `DELETE FROM innodb.users WHERE user_id = ?`,
+          `DELETE FROM users WHERE user_id = ?`,
           [user_id]
         );
 
         // NOTE : 게시글 삭제
         const [board_result] = await connection.query(
-          `DELETE FROM innodb.boards WHERE user_id = ?`,
+          `DELETE FROM boards WHERE user_id = ?`,
           [user_id]
         );
   
         // NOTE : 댓글 삭제
         const [comment_result] = await connection.query(
-          `DELETE FROM innodb.comments WHERE user_id = ?`,
+          `DELETE FROM comments WHERE user_id = ?`,
           [user_id]
         );
 
