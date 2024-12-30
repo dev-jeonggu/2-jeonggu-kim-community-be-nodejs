@@ -5,7 +5,7 @@ async function login(email, password){
     try {
         // NOTE: MySQL 쿼리를 실행하여 조건에 맞는 사용자 데이터를 가져옴
         const [rows] = await pool.promise().query(
-            `SELECT user_id, nickname, password, email, profile_url FROM innodb.users WHERE email = ?`,
+            `SELECT user_id, nickname, password, email, profile_url FROM users WHERE email = ?`,
             [email]
         );
 
