@@ -5,7 +5,7 @@ exports.addComment = async ({ board_id, content, user_id }) => {
     try {
         const now =  new Date();
         const [result] = await pool.promise().query(
-            `INSERT INTO innodb.comments (board_id, content, user_id, reg_dt)
+            `INSERT INTO comments (board_id, content, user_id, reg_dt)
              VALUES (?, ?, ?, ?)`,
             [board_id, content, user_id, now]
         );
@@ -42,9 +42,9 @@ exports.getCommentsByBoardId = async (board_id, user_id) => {
             ,   CASE WHEN c.chg_dt is not null THEN TRUE 
                     ELSE FALSE 
                 END AS isChange
-            FROM innodb.boards b
-            INNER JOIN innodb.comments c ON b.board_id = c.board_id
-            INNER JOIN innodb.users u ON c.user_id = u.user_id
+            FROM boards b
+            INNER JOIN comments c ON b.board_id = c.board_id
+            INNER JOIN users u ON c.user_id = u.user_id
             WHERE b.board_id = ?`,
             [user_id, board_id]
         );
@@ -59,7 +59,7 @@ exports.getCommentsByBoardId = async (board_id, user_id) => {
 exports.deleteComment = async (comment_id) => {
     try {
         const [result] = await pool.promise().query(
-            `DELETE FROM innodb.comments WHERE comment_id = ?`,
+            `DELETE FROM comments WHERE comment_id = ?`,
             [comment_id]
         );
         return result.affectedRows > 0; // NOTE : 삭제 성공 여부 반환
@@ -73,7 +73,7 @@ exports.deleteComment = async (comment_id) => {
 exports.updateComment = async (comment_id, newContent) => {
     try {
         const [result] = await pool.promise().query(
-            `UPDATE innodb.comments
+            `UPDATE comments
              SET content = ?, chg_dt = NOW()
              WHERE comment_id = ?`,
             [newContent, comment_id]
