@@ -1,4 +1,4 @@
-# project : Jeonggu.kim Community (Spring Boot)
+# project : Jeonggu.kim Community (Nodejs)
 Jeonggu.kim community
 
 
